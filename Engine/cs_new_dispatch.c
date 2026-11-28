@@ -188,7 +188,7 @@ static int32_t instr_has_direct_monitor(INSTRTXT *instr)
     OPTXT *opcode;
     for (opcode = instr->nxtop; opcode != NULL; opcode = opcode->nxtop) {
       OENTRY *entry = opcode->t.oentry;
-      if (entry != NULL && (entry->flags & IW) != 0)
+      if (entry != NULL && (entry->flags & (IW | OBJW)) != 0)
         return 1;
     }
     return 0;

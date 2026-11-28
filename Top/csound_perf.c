@@ -22,6 +22,7 @@
 
 #include "csoundCore.h"
 #include "cs_par_base.h"
+#include "opcode.h"
 
 int32_t dag_get_task(CSOUND *csound, int32_t index, int32_t numThreads,
                      int32_t next_task);
@@ -424,6 +425,7 @@ static int32_t perform_control_period(CSOUND *csound)
   result = csound->kperf(csound);
   ATOMIC_SET(csound->performance_epoch,
              (long) ((unsigned long) epoch + 2UL));
+  opcode_dataspace_reclaim(csound);
   return result;
 }
 

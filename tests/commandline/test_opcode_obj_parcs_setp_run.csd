@@ -14,11 +14,7 @@ output_excludes = ["Segmentation fault", "AddressSanitizer", "heap-use-after-fre
 sr = 1000
 ksmps = 10
 
-opcode Twice(value:k):k
-  xout value * 2
-endop
-
-shared@global:Opcode = create(opcoderef("Twice"))
+shared@global:Opcode = create(sqrt, 1)
 
 instr 1
   sum:k init 0

@@ -70,6 +70,7 @@ void opcode_dataspace_setref(OPDS *dataspace, uint32_t count);
 void opcode_dataspace_free(CSOUND *csound, OPDS *dataspace);
 int32_t opcode_dataspace_release(CSOUND *csound, OPCODEOBJ *obj,
                                  int32_t runDeinit);
+void opcode_dataspace_reclaim(CSOUND *csound);
 OPCODE_COPY_STATUS opcode_dataspace_acquire_copy(CSOUND *csound,
                                                  OPCODEOBJ *src, INSDS *ctx,
                                                  OPDS **dataspace,
@@ -77,7 +78,7 @@ OPCODE_COPY_STATUS opcode_dataspace_acquire_copy(CSOUND *csound,
                                                  cs_float ***outargp,
                                                  cs_float ***inargp,
                                                  uint32_t *udo_flag);
-int32_t context_check(CSOUND *csound, OPCODEOBJ *obj, INSDS *insds);
+int32_t context_check(CSOUND *csound, OPDS *dataspace, INSDS *insds);
 int32_t opcode_udo_ended(OPCODEOBJ *obj);
 /* the opcode objects a run or perf call runs: how many, and each one's
    dataspace */

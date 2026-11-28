@@ -32,28 +32,139 @@
 #include "interlocks.h"
 #include "find_opcode.h"
 
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
-static spin_lock_t opcode_dataspace_lock;
-static pthread_once_t opcode_dataspace_lock_once = PTHREAD_ONCE_INIT;
-
-static void init_opcode_dataspace_lock(void) {
-  (void) csoundSpinLockInit(&opcode_dataspace_lock);
-}
-
-static void opcode_dataspace_spinlock(void) {
-  pthread_once(&opcode_dataspace_lock_once, init_opcode_dataspace_lock);
-  csoundSpinLock(&opcode_dataspace_lock);
-}
+#if defined(_MSC_VER)
+#define OPCODE_THREAD_LOCAL __declspec(thread)
+#elif defined(BARE_METAL)
+#define OPCODE_THREAD_LOCAL
 #else
-static spin_lock_t opcode_dataspace_lock = SPINLOCK_INIT;
-
-static void opcode_dataspace_spinlock(void) {
-  csoundSpinLock(&opcode_dataspace_lock);
-}
+#define OPCODE_THREAD_LOCAL _Thread_local
 #endif
 
-static void opcode_dataspace_spinunlock(void) {
-  csoundSpinUnLock(&opcode_dataspace_lock);
+#if defined(MSVC)
+#define OPCODE_ATOMIC_LOAD_PTR(var) \
+  ((void *) InterlockedCompareExchangePointer((void **) &(var), NULL, NULL))
+#define OPCODE_ATOMIC_STORE_PTR(var, val) \
+  ((void) InterlockedExchangePointer((void **) &(var), (void *) (val)))
+#define OPCODE_ATOMIC_CAS_PTR(var, newVal, oldVal) \
+  (InterlockedCompareExchangePointer((void **) &(var), (void *) (newVal), \
+                                     (void *) (oldVal)) == (void *) (oldVal))
+#define OPCODE_ATOMIC_XCHG_PTR(var, val) \
+  ((void *) InterlockedExchangePointer((void **) &(var), (void *) (val)))
+#define OPCODE_ATOMIC_CAS_U32(var, newVal, oldVal) \
+  (InterlockedCompareExchange((volatile long *) &(var), (long) (newVal), \
+                              (long) (oldVal)) == (long) (oldVal))
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define OPCODE_ATOMIC_LOAD_PTR(var) __atomic_load_n(&(var), __ATOMIC_SEQ_CST)
+#define OPCODE_ATOMIC_STORE_PTR(var, val) \
+  ((void) __atomic_store_n(&(var), (val), __ATOMIC_SEQ_CST))
+#define OPCODE_ATOMIC_CAS_PTR(var, newVal, oldVal) \
+  __atomic_compare_exchange_n(&(var), &(oldVal), (newVal), 0, \
+                              __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST)
+#define OPCODE_ATOMIC_XCHG_PTR(var, val) \
+  __atomic_exchange_n(&(var), (val), __ATOMIC_SEQ_CST)
+#define OPCODE_ATOMIC_CAS_U32(var, newVal, oldVal) \
+  __atomic_compare_exchange_n(&(var), &(oldVal), (newVal), 0, \
+                              __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST)
+#else
+#define OPCODE_ATOMIC_LOAD_PTR(var) (var)
+#define OPCODE_ATOMIC_STORE_PTR(var, val) ((var) = (val))
+#define OPCODE_ATOMIC_CAS_PTR(var, newVal, oldVal) \
+  (((var) != (oldVal)) ? 0 : ((var) = (newVal), 1))
+#define OPCODE_ATOMIC_XCHG_PTR(var, val) \
+  (__extension__ ({ void *opcode_old_ = (void *) (var); (var) = (val); opcode_old_; }))
+#define OPCODE_ATOMIC_CAS_U32(var, newVal, oldVal) \
+  (((var) != (oldVal)) ? 0 : ((var) = (newVal), 1))
+#endif
+
+typedef struct opcode_retired OPCODE_RETIRED;
+
+struct opcode_retired {
+  OPCODE_RETIRED *next;
+  CSOUND *csound;
+  int32_t kind;
+  int32_t runDeinit;
+  int32_t freeAfter;
+  void *ptr;
+};
+
+typedef struct opcode_setp_entry OPCODE_SETP_ENTRY;
+
+struct opcode_setp_entry {
+  OPCODE_RETIRED retire;
+  OPCODE_SETP_ENTRY *next;
+  uint32_t ndx;
+  CS_VAR_MEM *storage;
+  cs_float *value;
+};
+
+enum {
+  OPCODE_RETIRE_DATASPACE = 1,
+  OPCODE_RETIRE_SETP = 2
+};
+
+typedef struct {
+  OPDS *dataspace;
+  cs_float **outargp;
+  cs_float **inargp;
+  size_t size;
+  uint32_t udo_flag;
+} OPCODE_SNAPSHOT;
+
+static OPCODE_RETIRED *opcode_retired_head;
+static OPCODE_THREAD_LOCAL int32_t opcode_reclaiming;
+
+void opcode_dataspace_free(CSOUND *csound, OPDS *dataspace);
+static void opcode_setp_storage_free(CSOUND *csound, CS_VAR_MEM *storage);
+
+static void opcode_retired_push(OPCODE_RETIRED *node) {
+  OPCODE_RETIRED *head;
+  if(node == NULL) return;
+  do {
+    head = (OPCODE_RETIRED *) OPCODE_ATOMIC_LOAD_PTR(opcode_retired_head);
+    node->next = head;
+  } while(!OPCODE_ATOMIC_CAS_PTR(opcode_retired_head, node, head));
+}
+
+static OPCODE_RETIRED *opcode_retired_take(void) {
+  return (OPCODE_RETIRED *) OPCODE_ATOMIC_XCHG_PTR(opcode_retired_head, NULL);
+}
+
+static void opcode_retired_repush(OPCODE_RETIRED *list) {
+  while(list != NULL) {
+    OPCODE_RETIRED *next = list->next;
+    opcode_retired_push(list);
+    list = next;
+  }
+}
+
+void opcode_dataspace_reclaim(CSOUND *csound) {
+  OPCODE_RETIRED *list, *next, *other = NULL;
+  if(csound == NULL || opcode_reclaiming) return;
+  opcode_reclaiming = 1;
+  list = opcode_retired_take();
+  while(list != NULL) {
+    next = list->next;
+    if(list->csound == csound) {
+      if(list->kind == OPCODE_RETIRE_SETP) {
+        OPCODE_SETP_ENTRY *entry = (OPCODE_SETP_ENTRY *) list->ptr;
+        opcode_setp_storage_free(csound, entry->storage);
+        csound->Free(csound, entry);
+      }
+      else if(list->kind == OPCODE_RETIRE_DATASPACE) {
+        OPDS *dataspace = (OPDS *) list->ptr;
+        if(list->runDeinit && dataspace->deinit != NULL)
+          dataspace->deinit(csound, dataspace);
+        if(list->freeAfter) opcode_dataspace_free(csound, dataspace);
+      }
+    }
+    else {
+      list->next = other;
+      other = list;
+    }
+    list = next;
+  }
+  opcode_retired_repush(other);
+  opcode_reclaiming = 0;
 }
 
 /* Print opcodes in system */
@@ -471,6 +582,15 @@ static const CS_TYPE *check_arg_type(void *arg, const CS_TYPE **types, int32_t n
   else return types[n];
 }
 
+static void opcode_dataspace_publish_binding(OPCODEOBJ *obj, OPDS *dataspace,
+                                             cs_float **outargs,
+                                             cs_float **inargs) {
+  if(OPCODE_ATOMIC_LOAD_PTR(obj->dataspace) == dataspace) {
+    OPCODE_ATOMIC_STORE_PTR(obj->outargp, outargs);
+    OPCODE_ATOMIC_STORE_PTR(obj->inargp, inargs);
+  }
+}
+
 /**
  * whether type is the one a long name in a type list names: name is the
  * text between the ':' and the ';', len its length. A struct type's own
@@ -495,25 +615,34 @@ static int32_t is_named_type(const CS_TYPE *type, const char *name, size_t len) 
  * returns an error if args do not match
  */
 static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *args[],
-                   const CS_TYPE **cstypes, int32_t no, int32_t ni){
-  TEXT *t = &(obj->dataspace->optext->t);
-  OENTRY *ep = t->oentry;
-  char *opname = ep->opname;
+                    const CS_TYPE **cstypes, int32_t no, int32_t ni,
+                    OPCODE_SNAPSHOT *snap){
+  OPDS *dataspace;
+  uint32_t udo_flag;
+  TEXT *t;
+  OENTRY *ep;
+  char *opname;
   char *types;
   const CS_TYPE *argtype;
   int32_t n = 0, opt = 0;
   int32_t  len, i = 0;
   cs_float **outargs;
   cs_float **inargs;
-  if(obj->udo_flag) {
+  dataspace = snap != NULL ? snap->dataspace : obj->dataspace;
+  udo_flag = snap != NULL ? snap->udo_flag : obj->udo_flag;
+  t = &(dataspace->optext->t);
+  ep = t->oentry;
+  opname = ep->opname;
+  if(udo_flag) {
     // udo args located at the end of udo struct
-    UOPCODE *udo = (UOPCODE *) obj->dataspace;
+    UOPCODE *udo = (UOPCODE *) dataspace;
     outargs = udo->ar;
   } else {
     // opcode args located after OPDS struct
-    outargs = (cs_float **) (obj->dataspace + 1);
+    outargs = (cs_float **) (dataspace + 1);
   }
-  obj->outargp = outargs;
+  if(snap != NULL) snap->outargp = outargs;
+  else obj->outargp = outargs;
   // out args first
   types = ep->outypes;
   while(*types != '\0') {
@@ -744,7 +873,9 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
   n++;    // skip opc obj arg
   types = ep->intypes;
   // opcode input args located after after outargs
-  obj->inargp = inargs = outargs + i;
+  inargs = outargs + i;
+  if(snap != NULL) snap->inargp = inargs;
+  else obj->inargp = inargs;
   i = 0;  // set inarg count to 0
   while(*types != '\0') {
     // now deal with multiple inargs
@@ -1239,6 +1370,8 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
   t->inArgs = h->optext->t.inArgs->next;
   t->inlist->count = ni = t->inArgCount = ni;
   t->inlist->arg[0] = (char *) t->inArgs;
+  if(snap != NULL)
+    opcode_dataspace_publish_binding(obj, dataspace, outargs, inargs);
   return OK;
 }
 
@@ -1266,11 +1399,11 @@ static uint32_t input_slots(const char *types, uint32_t given) {
  *  if types do not match or if object was not initialised,
  *  return an error
  */
-static int32_t check_and_set_arg(CSOUND *csound, OPCODEOBJ *obj, uint32_t ndx,
-                          cs_float *arg) {
-  if(obj->inargp != NULL) {
-    cs_float **inargp = obj->inargp;
-    const TEXT *t = &(obj->dataspace->optext->t);
+static int32_t check_and_set_arg(CSOUND *csound, OPCODE_SNAPSHOT *snap,
+                                 uint32_t ndx, cs_float *arg) {
+  if(snap->inargp != NULL) {
+    cs_float **inargp = snap->inargp;
+    const TEXT *t = &(snap->dataspace->optext->t);
     // the slots setup_args filled; one a failed call left empty is none
     if(ndx >= input_slots(t->oentry->intypes, t->inArgCount) ||
        inargp[ndx] == NULL) return NOTOK;
@@ -1302,17 +1435,17 @@ static int32_t check_and_set_arg(CSOUND *csound, OPCODEOBJ *obj, uint32_t ndx,
 /**
  * connect caller locn to opcode TXT
  */
-static void set_line_num_and_loc(OPCODEOBJ *obj, OPRUN *p) {
-  obj->dataspace->optext->t.linenum = p->h.optext->t.linenum;
-  obj->dataspace->optext->t.locn = p->h.optext->t.locn;
+static void set_line_num_and_loc(OPDS *dataspace, OPRUN *p) {
+  dataspace->optext->t.linenum = p->h.optext->t.linenum;
+  dataspace->optext->t.locn = p->h.optext->t.locn;
 }
 
 /**
  * check for mismatching context
  */
-int32_t context_check(CSOUND *csound, OPCODEOBJ *obj, INSDS *insds) {
-  if(obj->dataspace->insdshead == insds) return OK;
-  INSDS *ip = obj->dataspace->insdshead;
+int32_t context_check(CSOUND *csound, OPDS *dataspace, INSDS *insds) {
+  if(dataspace->insdshead == insds) return OK;
+  INSDS *ip = dataspace->insdshead;
   INSDS *ctx = insds;
   if(ctx) {
   // different SR always fails check
@@ -1331,50 +1464,58 @@ int32_t context_check(CSOUND *csound, OPCODEOBJ *obj, INSDS *insds) {
 static int32_t opcode_dataspace_was_initialized(OPDS *dataspace);
 static cs_float *opcode_dataspace_setp_arg(OPDS *dataspace, uint32_t ndx);
 
-int32_t opcode_udo_ended(OPCODEOBJ *obj) {
+static int32_t opcode_dataspace_ended(OPDS *dataspace, uint32_t udo_flag) {
   UOPCODE *udo;
-  if(!obj->udo_flag || obj->dataspace == NULL) return 0;
-  udo = (UOPCODE *) obj->dataspace;
-  return udo->ip == NULL &&
-    opcode_dataspace_was_initialized(obj->dataspace);
+  if(!udo_flag || dataspace == NULL) return 0;
+  udo = (UOPCODE *) dataspace;
+  return udo->ip == NULL && opcode_dataspace_was_initialized(dataspace);
+}
+
+int32_t opcode_udo_ended(OPCODEOBJ *obj) {
+  return opcode_dataspace_ended(
+    (OPDS *) OPCODE_ATOMIC_LOAD_PTR(obj->dataspace), obj->udo_flag);
+}
+
+#define OPCODE_RUN_SCOPE_MAX 64
+
+static OPCODE_THREAD_LOCAL OPDS *opcode_run_stack[OPCODE_RUN_SCOPE_MAX];
+static OPCODE_THREAD_LOCAL int32_t opcode_run_depth;
+
+static int32_t opcode_dataspace_is_running(OPDS *dataspace) {
+  int32_t n;
+  for(n = 0; n < opcode_run_depth; n++)
+    if(opcode_run_stack[n] == dataspace) return 1;
+  return 0;
 }
 
 /**
  * check consistency of arg pointers (for perf-time)
  * returns OK if the args are those bound by setup_args, NOTOK otherwise
  */
-static int32_t check_consistency(OPCODEOBJ *obj, cs_float **args,
-                          int32_t no, int32_t ni) {
+static int32_t check_consistency(OPCODE_SNAPSHOT *snap, cs_float **args,
+                           int32_t no, int32_t ni) {
   int32_t n;
   // setup_args stores these, in udo->ar for UDOs
-  cs_float **oargs = obj->outargp, **iargs = obj->inargp;
+  cs_float **oargs = snap->outargp, **iargs = snap->inargp;
   if(oargs == NULL || iargs == NULL) return NOTOK;
   for(n = 0; n < no; n++)
     if(oargs[n] != args[n]) return NOTOK;
   // inargs follow the opcode object arg; a recorded setp overrides the call
   for(n = 0; n < ni; n++) {
-    cs_float *want = opcode_dataspace_setp_arg(obj->dataspace, (uint32_t) n);
+    cs_float *want = opcode_dataspace_setp_arg(snap->dataspace, (uint32_t) n);
     if(iargs[n] != (want != NULL ? want : args[no + 1 + n])) return NOTOK;
   }
   return OK;
 }
 
-
-typedef struct opcode_setp_entry {
-  struct opcode_setp_entry *next;
-  uint32_t ndx;
-  CS_VAR_MEM *storage;
-  cs_float *value;
-} OPCODE_SETP_ENTRY;
-
 typedef struct {
   uint32_t refcount;
   uint32_t initialized;
-  uint32_t setpCount;
+  OPCODE_RETIRED retire;
   OPCODE_SETP_ENTRY *setp;
-  spin_lock_t runLock;
   void *allocation;
 } OPCODE_DATASPACE_HEADER;
+
 
 #define OPCODE_DATASPACE_ALIGNMENT 16u
 #define OPCODE_DATASPACE_PREFIX \
@@ -1390,33 +1531,40 @@ static char *opcode_dataspace_base(OPDS *dataspace) {
   return (char *) opcode_dataspace_header(dataspace)->allocation;
 }
 
-static void opcode_dataspace_runlock(OPDS *dataspace) {
-  if(dataspace != NULL)
-    csoundSpinLock(&opcode_dataspace_header(dataspace)->runLock);
+static int32_t opcode_dataspace_try_incref(OPDS *dataspace);
+static void opcode_dataspace_release_temp(CSOUND *csound, OPDS *dataspace,
+                                          int32_t runDeinit);
+
+static int32_t opcode_dataspace_acquire_run(CSOUND *csound, OPCODEOBJ *obj,
+                                           OPCODE_SNAPSHOT *snap) {
+  OPDS *dataspace;
+  if(obj == NULL || snap == NULL) return NOTOK;
+  memset(snap, 0, sizeof(*snap));
+  if(opcode_run_depth >= OPCODE_RUN_SCOPE_MAX) return NOTOK;
+  for(;;) {
+    dataspace = (OPDS *) OPCODE_ATOMIC_LOAD_PTR(obj->dataspace);
+    if(dataspace == NULL) return NOTOK;
+    if(!opcode_dataspace_try_incref(dataspace)) continue;
+    snap->dataspace = dataspace;
+    snap->outargp = (cs_float **) OPCODE_ATOMIC_LOAD_PTR(obj->outargp);
+    snap->inargp = (cs_float **) OPCODE_ATOMIC_LOAD_PTR(obj->inargp);
+    snap->size = obj->size;
+    snap->udo_flag = obj->udo_flag;
+    if((OPDS *) OPCODE_ATOMIC_LOAD_PTR(obj->dataspace) == dataspace) {
+      opcode_run_stack[opcode_run_depth++] = dataspace;
+      return OK;
+    }
+    opcode_dataspace_release_temp(csound, dataspace, 1);
+  }
 }
 
-static void opcode_dataspace_rununlock(OPDS *dataspace) {
-  if(dataspace != NULL)
-    csoundSpinUnLock(&opcode_dataspace_header(dataspace)->runLock);
-}
-
-static int32_t opcode_dataspace_incref_unlocked(OPDS *dataspace);
-
-static OPDS *opcode_dataspace_acquire_run(OPCODEOBJ *obj) {
-  OPDS *dataspace = NULL;
-  if(obj == NULL) return NULL;
-  opcode_dataspace_spinlock();
-  dataspace = obj->dataspace;
-  if(dataspace != NULL) opcode_dataspace_incref_unlocked(dataspace);
-  opcode_dataspace_spinunlock();
-  if(dataspace != NULL) opcode_dataspace_runlock(dataspace);
-  return dataspace;
-}
-
-static void opcode_dataspace_release_run(OPDS *dataspace) {
-  if(dataspace == NULL) return;
-  opcode_dataspace_rununlock(dataspace);
-  opcode_dataspace_decref(dataspace);
+static void opcode_dataspace_release_run(CSOUND *csound, OPCODEOBJ *obj,
+                                         OPCODE_SNAPSHOT *snap) {
+  if(snap == NULL || snap->dataspace == NULL) return;
+  if(opcode_run_depth > 0 &&
+     opcode_run_stack[opcode_run_depth - 1] == snap->dataspace)
+    opcode_run_depth--;
+  opcode_dataspace_release_temp(csound, snap->dataspace, 1);
 }
 
 static uint32_t *opcode_dataspace_refslot(OPDS *dataspace) {
@@ -1482,12 +1630,26 @@ static void opcode_setp_storage_free(CSOUND *csound, CS_VAR_MEM *storage) {
   csound->Free(csound, storage);
 }
 
-static void opcode_dataspace_free_setp_list(CSOUND *csound,
-                                            OPCODE_SETP_ENTRY *entry) {
+static void opcode_dataspace_free_setp_nodes(CSOUND *csound,
+                                              OPCODE_SETP_ENTRY *entry) {
   while(entry != NULL) {
     OPCODE_SETP_ENTRY *next = entry->next;
-    opcode_setp_storage_free(csound, entry->storage);
     csound->Free(csound, entry);
+    entry = next;
+  }
+}
+
+static void opcode_dataspace_retire_setp_list(CSOUND *csound,
+                                              OPCODE_SETP_ENTRY *entry) {
+  while(entry != NULL) {
+    OPCODE_SETP_ENTRY *next = entry->next;
+    entry->retire.next = NULL;
+    entry->retire.csound = csound;
+    entry->retire.kind = OPCODE_RETIRE_SETP;
+    entry->retire.runDeinit = 0;
+    entry->retire.freeAfter = 1;
+    entry->retire.ptr = entry;
+    opcode_retired_push(&entry->retire);
     entry = next;
   }
 }
@@ -1497,36 +1659,68 @@ static OPCODE_SETP_ENTRY *opcode_dataspace_detach_setp(OPDS *dataspace) {
   OPCODE_SETP_ENTRY *entries;
   if(dataspace == NULL) return NULL;
   header = opcode_dataspace_header(dataspace);
-  entries = header->setp;
-  header->setp = NULL;
-  header->setpCount = 0;
+  do {
+    entries = (OPCODE_SETP_ENTRY *) OPCODE_ATOMIC_LOAD_PTR(header->setp);
+  } while(!OPCODE_ATOMIC_CAS_PTR(header->setp, NULL, entries));
   return entries;
 }
 
 static void opcode_dataspace_free_setp(CSOUND *csound, OPDS *dataspace) {
-  OPCODE_SETP_ENTRY *entries;
-  if(dataspace == NULL) return;
-  opcode_dataspace_spinlock();
-  entries = opcode_dataspace_detach_setp(dataspace);
-  opcode_dataspace_spinunlock();
-  opcode_dataspace_free_setp_list(csound, entries);
+  opcode_dataspace_retire_setp_list(csound,
+                                    opcode_dataspace_detach_setp(dataspace));
 }
 
-static OPCODE_SETP_ENTRY *opcode_dataspace_find_setp_unlocked(OPDS *dataspace,
-                                                              uint32_t ndx) {
+static OPCODE_SETP_ENTRY *opcode_dataspace_find_setp(OPDS *dataspace,
+                                                      uint32_t ndx) {
   OPCODE_DATASPACE_HEADER *header = opcode_dataspace_header(dataspace);
   OPCODE_SETP_ENTRY *entry;
-  for(entry = header->setp; entry != NULL; entry = entry->next)
+  for(entry = (OPCODE_SETP_ENTRY *) OPCODE_ATOMIC_LOAD_PTR(header->setp);
+      entry != NULL; entry = entry->next)
     if(entry->ndx == ndx) return entry;
   return NULL;
+}
+
+static OPCODE_SETP_ENTRY *opcode_dataspace_clone_setp(CSOUND *csound,
+                                                      OPDS *dataspace,
+                                                      uint32_t ndx,
+                                                      OPCODE_SETP_ENTRY *entry) {
+  OPCODE_DATASPACE_HEADER *header = opcode_dataspace_header(dataspace);
+  OPCODE_SETP_ENTRY *old =
+    (OPCODE_SETP_ENTRY *) OPCODE_ATOMIC_LOAD_PTR(header->setp);
+  OPCODE_SETP_ENTRY *copy, *head = NULL, **tail = &head, *next;
+  while(old != NULL) {
+    if(old->ndx != ndx) {
+      copy = (OPCODE_SETP_ENTRY *) csound->Calloc(csound, sizeof(*copy));
+      if(copy == NULL) {
+        opcode_dataspace_free_setp_nodes(csound, head);
+        return NULL;
+      }
+      copy->ndx = old->ndx;
+      copy->storage = old->storage;
+      copy->value = old->value;
+      *tail = copy;
+      tail = &copy->next;
+    }
+    old = old->next;
+  }
+  next = (OPCODE_SETP_ENTRY *) csound->Calloc(csound, sizeof(*next));
+  if(next == NULL) {
+    opcode_dataspace_free_setp_nodes(csound, head);
+    return NULL;
+  }
+  next->ndx = ndx;
+  next->storage = entry->storage;
+  next->value = entry->value;
+  *tail = next;
+  return head;
 }
 
 static int32_t opcode_dataspace_record_setp(CSOUND *csound, OPDS *dataspace,
                                              uint32_t ndx, cs_float *arg,
                                              INSDS *ctx) {
   OPCODE_DATASPACE_HEADER *header;
-  OPCODE_SETP_ENTRY *entry, *existing;
-  CS_VAR_MEM *storage, *oldStorage = NULL;
+  OPCODE_SETP_ENTRY *entry, *old, *copy;
+  CS_VAR_MEM *storage;
   if(dataspace == NULL || arg == NULL) return NOTOK;
   storage = opcode_setp_storage_new(csound, arg, ctx);
   if(storage == NULL) return NOTOK;
@@ -1538,58 +1732,44 @@ static int32_t opcode_dataspace_record_setp(CSOUND *csound, OPDS *dataspace,
   entry->ndx = ndx;
   entry->storage = storage;
   entry->value = (cs_float *) ((char *) storage + CS_VAR_TYPE_OFFSET);
-  opcode_dataspace_spinlock();
   header = opcode_dataspace_header(dataspace);
-  existing = opcode_dataspace_find_setp_unlocked(dataspace, ndx);
-  if(existing != NULL) {
-    oldStorage = existing->storage;
-    existing->storage = storage;
-    existing->value = entry->value;
-    entry->storage = NULL;
+  for(;;) {
+    old = (OPCODE_SETP_ENTRY *) OPCODE_ATOMIC_LOAD_PTR(header->setp);
+    copy = opcode_dataspace_clone_setp(csound, dataspace, ndx, entry);
+    if(copy == NULL) break;
+    if(OPCODE_ATOMIC_CAS_PTR(header->setp, copy, old)) {
+      opcode_dataspace_retire_setp_list(csound, old);
+      csound->Free(csound, entry);
+      return OK;
+    }
+    opcode_dataspace_free_setp_nodes(csound, copy);
   }
-  else {
-    entry->next = header->setp;
-    header->setp = entry;
-    header->setpCount++;
-  }
-  opcode_dataspace_spinunlock();
-  if(existing != NULL) {
-    opcode_setp_storage_free(csound, oldStorage);
-    csound->Free(csound, entry);
-  }
-  return OK;
-}
-
-static cs_float *opcode_dataspace_setp_arg_unlocked(OPDS *dataspace,
-                                                     uint32_t ndx) {
-  OPCODE_SETP_ENTRY *entry =
-    opcode_dataspace_find_setp_unlocked(dataspace, ndx);
-  return entry != NULL ? entry->value : NULL;
+  opcode_setp_storage_free(csound, storage);
+  csound->Free(csound, entry);
+  return NOTOK;
 }
 
 static cs_float *opcode_dataspace_setp_arg(OPDS *dataspace, uint32_t ndx) {
-  cs_float *arg;
+  OPCODE_SETP_ENTRY *entry;
   if(dataspace == NULL) return NULL;
-  opcode_dataspace_spinlock();
-  arg = opcode_dataspace_setp_arg_unlocked(dataspace, ndx);
-  opcode_dataspace_spinunlock();
-  return arg;
+  entry = opcode_dataspace_find_setp(dataspace, ndx);
+  return entry != NULL ? entry->value : NULL;
 }
 
-static void opcode_dataspace_restore_setp(OPCODEOBJ *obj) {
+static void opcode_dataspace_restore_setp(OPDS *dataspace,
+                                          cs_float **inargp) {
   const TEXT *t;
   uint32_t slots;
   OPCODE_SETP_ENTRY *entry;
-  OPCODE_DATASPACE_HEADER *header;
-  if(obj->dataspace == NULL || obj->inargp == NULL) return;
-  t = &(obj->dataspace->optext->t);
+  if(dataspace == NULL || inargp == NULL) return;
+  t = &(dataspace->optext->t);
   slots = input_slots(t->oentry->intypes, t->inArgCount);
-  opcode_dataspace_spinlock();
-  header = opcode_dataspace_header(obj->dataspace);
-  for(entry = header->setp; entry != NULL; entry = entry->next)
-    if(entry->ndx < slots) obj->inargp[entry->ndx] = entry->value;
-  opcode_dataspace_spinunlock();
+  for(entry = (OPCODE_SETP_ENTRY *)
+        OPCODE_ATOMIC_LOAD_PTR(opcode_dataspace_header(dataspace)->setp);
+      entry != NULL; entry = entry->next)
+    if(entry->ndx < slots) inargp[entry->ndx] = entry->value;
 }
+
 
 
 /**
@@ -1614,8 +1794,7 @@ static OPDS *opcode_dataspace_new(CSOUND *csound, OENTRY *entry, OPDS *h) {
     header = opcode_dataspace_header(dataspace);
     header->allocation = allocation;
     header->setp = NULL;
-    header->setpCount = 0;
-    (void) csoundSpinLockInit(&header->runLock);
+    memset(&header->retire, 0, sizeof(header->retire));
     *opcode_dataspace_refslot(dataspace) = 1;
     header->initialized = 0;
     dataspace->insdshead = h->insdshead;
@@ -1651,132 +1830,140 @@ void opcode_dataspace_free(CSOUND *csound, OPDS *dataspace) {
   csound->Free(csound, opcode_dataspace_base(dataspace));
 }
 
-static int32_t opcode_dataspace_incref_unlocked(OPDS *dataspace) {
+static int32_t opcode_dataspace_try_incref(OPDS *dataspace) {
+  uint32_t old;
   uint32_t *ref;
   if(dataspace == NULL) return 0;
   ref = opcode_dataspace_refslot(dataspace);
-  if(ATOMIC_GET(*ref) < 0xffffffffu) ATOMIC_INCR(*ref);
-  return (int32_t) ATOMIC_GET(*ref);
+  old = (uint32_t) ATOMIC_GET(*ref);
+  for(;;) {
+    if(old == 0 || old == 0xffffffffu) return 0;
+    if(OPCODE_ATOMIC_CAS_U32(*ref, old + 1, old)) return (int32_t) (old + 1);
+  }
 }
 
-static int32_t opcode_dataspace_decref_unlocked(OPDS *dataspace) {
+static int32_t opcode_dataspace_decref_cas(OPDS *dataspace) {
+  uint32_t old;
   uint32_t *ref;
   if(dataspace == NULL) return 0;
   ref = opcode_dataspace_refslot(dataspace);
-  if(ATOMIC_GET(*ref) > 0) ATOMIC_DECR(*ref);
-  return (int32_t) ATOMIC_GET(*ref);
+  old = (uint32_t) ATOMIC_GET(*ref);
+  for(;;) {
+    if(old == 0) return 0;
+    if(OPCODE_ATOMIC_CAS_U32(*ref, old - 1, old)) return (int32_t) (old - 1);
+  }
 }
 
 static void opcode_dataspace_setref_unlocked(OPDS *dataspace, uint32_t count) {
   if(dataspace != NULL) ATOMIC_SET(*opcode_dataspace_refslot(dataspace), count);
 }
 
+static void opcode_dataspace_retire(CSOUND *csound, OPDS *dataspace,
+                                    int32_t runDeinit, int32_t freeAfter) {
+  OPCODE_DATASPACE_HEADER *header;
+  if(dataspace == NULL) return;
+  header = opcode_dataspace_header(dataspace);
+  header->retire.next = NULL;
+  header->retire.csound = csound;
+  header->retire.kind = OPCODE_RETIRE_DATASPACE;
+  header->retire.runDeinit = runDeinit;
+  header->retire.freeAfter = freeAfter;
+  header->retire.ptr = dataspace;
+  opcode_retired_push(&header->retire);
+}
+
 int32_t opcode_dataspace_refcount(OPDS *dataspace) {
-  int32_t rc;
   if(dataspace == NULL) return 0;
-  opcode_dataspace_spinlock();
-  rc = (int32_t) ATOMIC_GET(*opcode_dataspace_refslot(dataspace));
-  opcode_dataspace_spinunlock();
-  return rc;
+  return (int32_t) ATOMIC_GET(*opcode_dataspace_refslot(dataspace));
 }
 
 int32_t opcode_dataspace_incref(OPDS *dataspace) {
-  int32_t rc;
-  if(dataspace == NULL) return 0;
-  opcode_dataspace_spinlock();
-  rc = opcode_dataspace_incref_unlocked(dataspace);
-  opcode_dataspace_spinunlock();
-  return rc;
+  return opcode_dataspace_try_incref(dataspace);
 }
 
 int32_t opcode_dataspace_decref(OPDS *dataspace) {
-  int32_t rc;
-  if(dataspace == NULL) return 0;
-  opcode_dataspace_spinlock();
-  rc = opcode_dataspace_decref_unlocked(dataspace);
-  opcode_dataspace_spinunlock();
-  return rc;
+  return opcode_dataspace_decref_cas(dataspace);
 }
 
 void opcode_dataspace_setref(OPDS *dataspace, uint32_t count) {
-  if(dataspace == NULL) return;
-  opcode_dataspace_spinlock();
   opcode_dataspace_setref_unlocked(dataspace, count);
-  opcode_dataspace_spinunlock();
+}
+
+static void opcode_dataspace_release_temp(CSOUND *csound, OPDS *dataspace,
+                                          int32_t runDeinit) {
+  int32_t rc;
+  if(dataspace == NULL) return;
+  rc = opcode_dataspace_decref_cas(dataspace);
+  if(rc == 0) {
+    opcode_dataspace_retire_setp_list(csound,
+                                      opcode_dataspace_detach_setp(dataspace));
+    opcode_dataspace_retire(csound, dataspace, runDeinit, 1);
+  }
 }
 
 OPCODE_COPY_STATUS opcode_dataspace_acquire_copy(CSOUND *csound,
-                                                 OPCODEOBJ *src, INSDS *ctx,
-                                                 OPDS **dataspace,
-                                                 size_t *size,
-                                                 cs_float ***outargp,
-                                                 cs_float ***inargp,
-                                                 uint32_t *udo_flag) {
-  OPCODE_COPY_STATUS status = OPCODE_COPY_OK;
-  OPDS *ds;
+                                                  OPCODEOBJ *src, INSDS *ctx,
+                                                  OPDS **dataspace,
+                                                  size_t *size,
+                                                  cs_float ***outargp,
+                                                  cs_float ***inargp,
+                                                  uint32_t *udo_flag) {
+  OPDS *ds, *current;
   if(src == NULL) return OPCODE_COPY_EMPTY;
-  opcode_dataspace_spinlock();
-  ds = src->dataspace;
-  if(ds == NULL) status = OPCODE_COPY_EMPTY;
-  else if(opcode_udo_ended(src)) status = OPCODE_COPY_ENDED;
-  else if(context_check(csound, src, ctx) != OK) status = OPCODE_COPY_CONTEXT;
-  else {
-    opcode_dataspace_incref_unlocked(ds);
-    if(dataspace != NULL) *dataspace = ds;
-    if(size != NULL) *size = src->size;
-    if(outargp != NULL) *outargp = src->outargp;
-    if(inargp != NULL) *inargp = src->inargp;
-    if(udo_flag != NULL) *udo_flag = src->udo_flag;
-  }
-  opcode_dataspace_spinunlock();
-  return status;
-}
-
-static int32_t opcode_dataspace_release_locked(CSOUND *csound, OPCODEOBJ *obj,
-                                               int32_t runDeinit,
-                                               OPDS **freeDataspace,
-                                               OPDS **freeSpare,
-                                               OPDS **deinitDataspace,
-                                               OPCODE_SETP_ENTRY **freeSetp) {
-  OPDS *dataspace;
-  int32_t rc;
-  *freeDataspace = *freeSpare = *deinitDataspace = NULL;
-  *freeSetp = NULL;
-  if(obj == NULL || obj->dataspace == NULL) return 0;
-  dataspace = obj->dataspace;
-  rc = opcode_dataspace_decref_unlocked(dataspace);
-  if(rc == 0) {
-    *freeSetp = opcode_dataspace_detach_setp(dataspace);
-    if(runDeinit) *deinitDataspace = dataspace;
-    if(obj->udo_flag) {
-      if(obj->spare != NULL && obj->spare != dataspace &&
-         ((UOPCODE *) obj->spare)->ip == NULL)
-        *freeSpare = (OPDS *) obj->spare;
-      obj->spare = dataspace;
+  for(;;) {
+    ds = (OPDS *) OPCODE_ATOMIC_LOAD_PTR(src->dataspace);
+    if(ds == NULL) return OPCODE_COPY_EMPTY;
+    if(!opcode_dataspace_try_incref(ds)) continue;
+    if(opcode_dataspace_ended(ds, src->udo_flag)) {
+      opcode_dataspace_release_temp(csound, ds, 0);
+      return OPCODE_COPY_ENDED;
     }
-    else *freeDataspace = dataspace;
+    if(context_check(csound, ds, ctx) != OK) {
+      opcode_dataspace_release_temp(csound, ds, 0);
+      return OPCODE_COPY_CONTEXT;
+    }
+    current = (OPDS *) OPCODE_ATOMIC_LOAD_PTR(src->dataspace);
+    if(current == ds) {
+      if(dataspace != NULL) *dataspace = ds;
+      if(size != NULL) *size = src->size;
+      if(outargp != NULL) *outargp = (cs_float **)
+        OPCODE_ATOMIC_LOAD_PTR(src->outargp);
+      if(inargp != NULL) *inargp = (cs_float **)
+        OPCODE_ATOMIC_LOAD_PTR(src->inargp);
+      if(udo_flag != NULL) *udo_flag = src->udo_flag;
+      return OPCODE_COPY_OK;
+    }
+    opcode_dataspace_release_temp(csound, ds, 1);
   }
-  obj->dataspace = NULL;
-  obj->outargp = obj->inargp = NULL;
-  return rc;
 }
 
 int32_t opcode_dataspace_release(CSOUND *csound, OPCODEOBJ *obj,
-                                 int32_t runDeinit) {
-  OPDS *freeDataspace = NULL, *freeSpare = NULL, *deinitDataspace = NULL;
-  OPCODE_SETP_ENTRY *freeSetp = NULL;
+                                  int32_t runDeinit) {
+  OPDS *dataspace, *spare, *freeSpare = NULL;
   int32_t rc;
-  opcode_dataspace_spinlock();
-  rc = opcode_dataspace_release_locked(csound, obj, runDeinit,
-                                       &freeDataspace, &freeSpare,
-                                       &deinitDataspace, &freeSetp);
-  opcode_dataspace_spinunlock();
+  if(obj == NULL) return 0;
+  for(;;) {
+    dataspace = (OPDS *) OPCODE_ATOMIC_LOAD_PTR(obj->dataspace);
+    if(dataspace == NULL) return 0;
+    if(OPCODE_ATOMIC_CAS_PTR(obj->dataspace, NULL, dataspace)) break;
+  }
+  OPCODE_ATOMIC_STORE_PTR(obj->outargp, NULL);
+  OPCODE_ATOMIC_STORE_PTR(obj->inargp, NULL);
+  rc = opcode_dataspace_decref_cas(dataspace);
   if(rc == 0) {
-    if(deinitDataspace != NULL && deinitDataspace->deinit != NULL)
-      deinitDataspace->deinit(csound, deinitDataspace);
-    opcode_dataspace_free_setp_list(csound, freeSetp);
-    if(freeSpare != NULL) opcode_dataspace_free(csound, freeSpare);
-    if(freeDataspace != NULL) opcode_dataspace_free(csound, freeDataspace);
+    int32_t freeAfter = 1;
+    if(obj->udo_flag) {
+      spare = (OPDS *) OPCODE_ATOMIC_LOAD_PTR(obj->spare);
+      if(spare != NULL && spare != dataspace &&
+         ((UOPCODE *) spare)->ip == NULL)
+        freeSpare = spare;
+      OPCODE_ATOMIC_STORE_PTR(obj->spare, dataspace);
+      freeAfter = 0;
+    }
+    if(freeSpare != NULL) opcode_dataspace_retire(csound, freeSpare, 1, 1);
+    opcode_dataspace_retire_setp_list(csound,
+                                      opcode_dataspace_detach_setp(dataspace));
+    opcode_dataspace_retire(csound, dataspace, runDeinit, freeAfter);
   }
   return rc;
 }
@@ -1787,22 +1974,25 @@ int32_t opcode_dataspace_release(CSOUND *csound, OPCODEOBJ *obj,
  */
 static void opcode_take_spare(CSOUND *csound, OPCODEOBJ *obj, OENTRY *entry) {
   UOPCODE *udo;
-  OPDS *freeDataspace = NULL;
-  opcode_dataspace_spinlock();
-  udo = (UOPCODE *) obj->spare;
-  if(udo == NULL) {
-    opcode_dataspace_spinunlock();
-    return;
+  OPDS *freeDataspace = NULL, *spare;
+  spare = (OPDS *) OPCODE_ATOMIC_LOAD_PTR(obj->spare);
+  udo = (UOPCODE *) spare;
+  if(udo == NULL) return;
+  for(;;) {
+    spare = (OPDS *) OPCODE_ATOMIC_LOAD_PTR(obj->spare);
+    if(spare == NULL) return;
+    if(OPCODE_ATOMIC_CAS_PTR(obj->spare, NULL, spare)) break;
   }
-  obj->spare = NULL;
-  if(obj->dataspace == NULL && udo->h.optext->t.oentry == entry) {
-    obj->dataspace = (OPDS *) udo;
-    opcode_dataspace_setref_unlocked(obj->dataspace, 1);
+  if((OPDS *) OPCODE_ATOMIC_LOAD_PTR(obj->dataspace) == NULL &&
+     udo->h.optext->t.oentry == entry) {
+    OPCODE_ATOMIC_STORE_PTR(obj->dataspace, (OPDS *) udo);
+    opcode_dataspace_setref_unlocked((OPDS *) udo, 1);
   }
   else if(udo->ip == NULL) freeDataspace = (OPDS *) udo;
-  opcode_dataspace_spinunlock();
-  if(freeDataspace != NULL) opcode_dataspace_free(csound, freeDataspace);
+  if(freeDataspace != NULL)
+    opcode_dataspace_retire(csound, freeDataspace, 1, 1);
 }
+
 
 /**
  *  create single OpcodeObj from OpcodeDef
@@ -1939,13 +2129,13 @@ int32_t opcode_object_init(CSOUND *csound, OPRUN *p) {
   if(opcode_udo_ended(obj))
     return csound->InitError(csound,
                              Str("opcode object UDO instance has ended\n"));
-  if(context_check(csound, obj, p->h.insdshead) != OK)
+  if(context_check(csound, obj->dataspace, p->h.insdshead) != OK)
     return csound->InitError(csound, Str("incompatible context, "
-                             "cannot initialise opcode obj for %s\n"),
-                             obj->dataspace->optext->t.oentry->opname);
-  set_line_num_and_loc(obj, p);
+                              "cannot initialise opcode obj for %s\n"),
+                              obj->dataspace->optext->t.oentry->opname);
+  set_line_num_and_loc(obj->dataspace, p);
   if(setup_args(csound, obj, &(p->h), pargs, NULL, p->OUTOCOUNT,
-                p->INOCOUNT - 1) == OK) {
+                 p->INOCOUNT - 1, NULL) == OK) {
     opcode_dataspace_free_setp(csound, obj->dataspace);
     if(obj->dataspace->init != NULL) {
        int32_t ret = obj->dataspace->init(csound, obj->dataspace);
@@ -1973,56 +2163,52 @@ int32_t opcode_object_init(CSOUND *csound, OPRUN *p) {
 int32_t opcode_object_perf(CSOUND *csound, OPRUN *p) {
   cs_float **pargs = oprun_args(p);
   OPCODEOBJ *obj = (OPCODEOBJ *) pargs[p->OUTOCOUNT];
-  OPDS *runDataspace;
+  OPCODE_SNAPSHOT snap;
   int32_t result;
-  if(obj->dataspace == NULL)
+  if(opcode_dataspace_acquire_run(csound, obj, &snap) != OK)
     return csound->PerfError(csound, &(p->h),
                              Str("opcode object not initialised\n"));
-  runDataspace = opcode_dataspace_acquire_run(obj);
-  if(runDataspace == NULL)
-    return csound->PerfError(csound, &(p->h),
-                             Str("opcode object not initialised\n"));
-  if(opcode_udo_ended(obj)) {
+  if(opcode_dataspace_ended(snap.dataspace, snap.udo_flag)) {
     result = csound->PerfError(csound, &(p->h),
                                Str("opcode object UDO instance has ended\n"));
     goto done;
   }
-  if(context_check(csound, obj, p->h.insdshead) != OK) {
+  if(context_check(csound, snap.dataspace, p->h.insdshead) != OK) {
     result = csound->PerfError(csound, &(p->h), Str("incompatible context, "
                                "cannot perform opcode obj for %s\n"),
-                               obj->dataspace->optext->t.oentry->opname);
+                               snap.dataspace->optext->t.oentry->opname);
     goto done;
   }
-  set_line_num_and_loc(obj, p);
-  if(check_consistency(obj, pargs, p->OUTOCOUNT, p->INOCOUNT - 1) != OK) {
-    if(obj->udo_flag)
-      user_opcode_rebind_constants((UOPCODE *) obj->dataspace,
+  set_line_num_and_loc(snap.dataspace, p);
+  if(check_consistency(&snap, pargs, p->OUTOCOUNT, p->INOCOUNT - 1) != OK) {
+    if(snap.udo_flag)
+      user_opcode_rebind_constants((UOPCODE *) snap.dataspace,
                                    pargs + p->OUTOCOUNT + 1, p->INOCOUNT - 1);
     if(setup_args(csound, obj, &(p->h), pargs, NULL, p->OUTOCOUNT,
-                p->INOCOUNT - 1) != OK) {
+                  p->INOCOUNT - 1, &snap) != OK) {
       result = csound->PerfError(csound, &(p->h), Str("mismatching arguments\n"
                            "for opcode obj %s\t"
                            "outypes: %s\tintypes: %s\n"),
-                           obj->dataspace->optext->t.oentry->opname,
-                           obj->dataspace->optext->t.oentry->outypes,
-                               obj->dataspace->optext->t.oentry->intypes);
+                           snap.dataspace->optext->t.oentry->opname,
+                           snap.dataspace->optext->t.oentry->outypes,
+                           snap.dataspace->optext->t.oentry->intypes);
       goto done;
     }
     // setp overrides must be in the slots before the UDO body is rewired
-    opcode_dataspace_restore_setp(obj);
-    if(obj->udo_flag &&
-       user_opcode_rebind_args(csound, (UOPCODE *) obj->dataspace) != OK) {
+    opcode_dataspace_restore_setp(snap.dataspace, snap.inargp);
+    if(snap.udo_flag &&
+       user_opcode_rebind_args(csound, (UOPCODE *) snap.dataspace) != OK) {
       result = csound->PerfError(csound, &(p->h),
                                  Str("could not rebind arguments "
                                      "for opcode obj %s\n"),
-                                  obj->dataspace->optext->t.oentry->opname);
+                                  snap.dataspace->optext->t.oentry->opname);
       goto done;
     }
   }
-  result = obj->dataspace->perf != NULL
-    ? obj->dataspace->perf(csound, obj->dataspace) : OK;
+  result = snap.dataspace->perf != NULL
+    ? snap.dataspace->perf(csound, snap.dataspace) : OK;
 done:
-  opcode_dataspace_release_run(runDataspace);
+  opcode_dataspace_release_run(csound, obj, &snap);
   return result;
 }
 
@@ -2046,8 +2232,10 @@ OPDS *opcode_run_dataspace(OPDS *op, int32_t i)
   OPRUN *p = (OPRUN *) op;
   cs_float **pargs = oprun_args(p);
   if (op->perf == (SUBR) opcode_array_perf)
-    return opcode_array_obj((ARRAYDAT *) pargs[p->OUTOCOUNT], i)->dataspace;
-  return ((const OPCODEOBJ *) pargs[p->OUTOCOUNT])->dataspace;
+    return (OPDS *) OPCODE_ATOMIC_LOAD_PTR(
+      opcode_array_obj((ARRAYDAT *) pargs[p->OUTOCOUNT], i)->dataspace);
+  return (OPDS *) OPCODE_ATOMIC_LOAD_PTR(
+    ((const OPCODEOBJ *) pargs[p->OUTOCOUNT])->dataspace);
 }
 
 /**
@@ -2057,56 +2245,55 @@ OPDS *opcode_run_dataspace(OPDS *op, int32_t i)
 int32_t opcode_run_perf(CSOUND *csound, OPRUN *p) {
   cs_float **pargs = oprun_args(p);
   OPCODEOBJ *obj = (OPCODEOBJ *) pargs[p->OUTOCOUNT];
-  OPDS *runDataspace;
+  OPCODE_SNAPSHOT snap;
   int32_t result;
   if(UNLIKELY(obj->dataspace == NULL ||
               obj->dataspace->optext->t.outlist == NULL))
     return csound->PerfError(csound, &(p->h),
                              Str("opcode object not initialised\n"));
-  runDataspace = opcode_dataspace_acquire_run(obj);
-  if(runDataspace == NULL)
+  if(opcode_dataspace_acquire_run(csound, obj, &snap) != OK)
     return csound->PerfError(csound, &(p->h),
                              Str("opcode object not initialised\n"));
-  if(opcode_udo_ended(obj)) {
+  if(opcode_dataspace_ended(snap.dataspace, snap.udo_flag)) {
     result = csound->PerfError(csound, &(p->h),
                                Str("opcode object UDO instance has ended\n"));
     goto done;
   }
-  if(context_check(csound, obj, p->h.insdshead) != OK) {
+  if(context_check(csound, snap.dataspace, p->h.insdshead) != OK) {
     result = csound->PerfError(csound, &(p->h), Str("incompatible context, "
                                "cannot perform opcode obj for %s\n"),
-                               obj->dataspace->optext->t.oentry->opname);
+                               snap.dataspace->optext->t.oentry->opname);
     goto done;
   }
-  set_line_num_and_loc(obj, p);
-  if(check_consistency(obj, pargs, p->OUTOCOUNT, p->INOCOUNT - 1) != OK) {
-    if(obj->udo_flag)
-      user_opcode_rebind_constants((UOPCODE *) obj->dataspace,
+  set_line_num_and_loc(snap.dataspace, p);
+  if(check_consistency(&snap, pargs, p->OUTOCOUNT, p->INOCOUNT - 1) != OK) {
+    if(snap.udo_flag)
+      user_opcode_rebind_constants((UOPCODE *) snap.dataspace,
                                    pargs + p->OUTOCOUNT + 1, p->INOCOUNT - 1);
     if(setup_args(csound, obj, &(p->h), pargs, NULL, p->OUTOCOUNT,
-                  p->INOCOUNT - 1) != OK) {
+                   p->INOCOUNT - 1, &snap) != OK) {
       result = csound->PerfError(csound, &(p->h), Str("mismatching arguments\n"
                            "for opcode obj %s\t"
                            "outypes: %s\tintypes: %s\n"),
-                           obj->dataspace->optext->t.oentry->opname,
-                           obj->dataspace->optext->t.oentry->outypes,
-                           obj->dataspace->optext->t.oentry->intypes);
+                           snap.dataspace->optext->t.oentry->opname,
+                           snap.dataspace->optext->t.oentry->outypes,
+                           snap.dataspace->optext->t.oentry->intypes);
       goto done;
     }
-    opcode_dataspace_restore_setp(obj);
-    if(obj->udo_flag &&
-       user_opcode_rebind_args(csound, (UOPCODE *) obj->dataspace) != OK) {
+    opcode_dataspace_restore_setp(snap.dataspace, snap.inargp);
+    if(snap.udo_flag &&
+       user_opcode_rebind_args(csound, (UOPCODE *) snap.dataspace) != OK) {
       result = csound->PerfError(csound, &(p->h),
-                                 Str("could not rebind arguments "
-                                     "for opcode obj %s\n"),
-                                  obj->dataspace->optext->t.oentry->opname);
+                                  Str("could not rebind arguments "
+                                      "for opcode obj %s\n"),
+                                   snap.dataspace->optext->t.oentry->opname);
       goto done;
     }
   }
-  result = obj->dataspace->perf != NULL
-    ? obj->dataspace->perf(csound, obj->dataspace) : OK;
+  result = snap.dataspace->perf != NULL
+    ? snap.dataspace->perf(csound, snap.dataspace) : OK;
 done:
-  opcode_dataspace_release_run(runDataspace);
+  opcode_dataspace_release_run(csound, obj, &snap);
   return result;
 }
 
@@ -2129,7 +2316,7 @@ int32_t opcode_delete_array(CSOUND *csound, AOP *p) {
 
 // check whether argument n of the opcode is declared as an array
 static int32_t isTypeArray(OPCODEOBJ *obj, int32_t n, int32_t isInput) {
-  TEXT *t = &(obj->dataspace->optext->t);
+  TEXT *t = &(((OPDS *) OPCODE_ATOMIC_LOAD_PTR(obj->dataspace))->optext->t);
   OENTRY *ep = t->oentry;
   const char *types = isInput ? ep->intypes : ep->outypes;
   int32_t i = 0;
@@ -2256,8 +2443,8 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
   for(i = 0; i < n; i++) {
     size_t size;
     obj = opcode_array_obj(objects, i);
-    set_line_num_and_loc(obj, p);
-    if(context_check(csound, obj, p->h.insdshead) != OK)
+    set_line_num_and_loc(obj->dataspace, p);
+    if(context_check(csound, obj->dataspace, p->h.insdshead) != OK)
       return csound->InitError(csound, Str("incompatible context, "
                                "cannot initialise opcode obj for %s\n"),
                                obj->dataspace->optext->t.oentry->opname);
@@ -2316,7 +2503,7 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
    
     // call setup_args with array flag checked, passing assigned args
     if(setup_args(csound, obj, &(p->h), args, types,
-                  p->OUTOCOUNT, p->INOCOUNT - 1) == OK) {
+                   p->OUTOCOUNT, p->INOCOUNT - 1, NULL) == OK) {
       opcode_dataspace_free_setp(csound, obj->dataspace);
       if(obj->dataspace->init != NULL) {
         int32_t initResult = obj->dataspace->init(csound, obj->dataspace);
@@ -2397,20 +2584,20 @@ int32_t opcode_array_perf(CSOUND *csound, OPRUN *p) {
     return csound->PerfError(csound, &(p->h),
                              Str("opcode object not initialised\n"));
   {
-    OPDS *runDataspace = opcode_dataspace_acquire_run(obj);
+    OPCODE_SNAPSHOT snap;
     int32_t runResult;
-    if(runDataspace == NULL)
+    if(opcode_dataspace_acquire_run(csound, obj, &snap) != OK)
       return csound->PerfError(csound, &(p->h),
                                Str("opcode object not initialised\n"));
-    if(opcode_udo_ended(obj)) {
-      opcode_dataspace_release_run(runDataspace);
+    if(opcode_dataspace_ended(snap.dataspace, snap.udo_flag)) {
+      opcode_dataspace_release_run(csound, obj, &snap);
       return csound->PerfError(csound, &(p->h),
                                Str("opcode object UDO instance has ended\n"));
     }
-    set_line_num_and_loc(obj, p);
-    runResult = obj->dataspace->perf != NULL
-      ? obj->dataspace->perf(csound, obj->dataspace) : OK;
-    opcode_dataspace_release_run(runDataspace);
+    set_line_num_and_loc(snap.dataspace, p);
+    runResult = snap.dataspace->perf != NULL
+      ? snap.dataspace->perf(csound, snap.dataspace) : OK;
+    opcode_dataspace_release_run(csound, obj, &snap);
     if(runResult != OK) return runResult;
   }
 
@@ -2438,15 +2625,17 @@ int32_t copy_opcode_obj(CSOUND *csound, ASSIGN *p) {
   OPCODEOBJ *dst = (OPCODEOBJ *) p->r;
   OPCODEOBJ *src = (OPCODEOBJ *) p->a;
   if(dst == NULL || src == NULL) return OK;
-  if(src->dataspace != NULL && opcode_udo_ended(src)) {
+  if(OPCODE_ATOMIC_LOAD_PTR(src->dataspace) != NULL && opcode_udo_ended(src)) {
     if(csound->mode == 1)
       return csound->InitError(csound,
                                Str("opcode object UDO instance has ended\n"));
     return csound->PerfError(csound, &(p->h),
                              Str("opcode object UDO instance has ended\n"));
   }
-  if(src->dataspace != NULL &&
-     context_check(csound, src, p->h.insdshead) != OK) {
+  if(OPCODE_ATOMIC_LOAD_PTR(src->dataspace) != NULL &&
+     context_check(csound,
+                   (OPDS *) OPCODE_ATOMIC_LOAD_PTR(src->dataspace),
+                   p->h.insdshead) != OK) {
     if(csound->mode == 1)
       return csound->InitError(csound, Str("could not copy opcode object: "
                                            "incompatible context\n"));
@@ -2471,7 +2660,7 @@ int32_t set_opcode_param(CSOUND *csound, AOP *p) {
   cs_float *arg  = p->b;
   cs_float *previousArg = NULL;
   uint32_t slots;
-  OPDS *runDataspace;
+  OPCODE_SNAPSHOT snap;
   int32_t result;
   // Defensive: object not initialised yet (e.g., wrong overload picked or missing 'create')
   if (UNLIKELY(obj == NULL || obj->dataspace == NULL)) {
@@ -2483,55 +2672,59 @@ int32_t set_opcode_param(CSOUND *csound, AOP *p) {
   if(index < 0) index = 0;
   if(UNLIKELY(index != index || index >= VARGMAX))
     return csound->PerfError(csound, &(p->h), Str("argument index out of range\n"));
-  runDataspace = opcode_dataspace_acquire_run(obj);
-  if(runDataspace == NULL)
+  if(opcode_dataspace_is_running(
+       (OPDS *) OPCODE_ATOMIC_LOAD_PTR(obj->dataspace)))
+    return csound->PerfError(csound, &(p->h),
+                             Str("cannot set an opcode object from its own run\n"));
+  if(opcode_dataspace_acquire_run(csound, obj, &snap) != OK)
     return csound->PerfError(csound, &(p->h),
                              Str("opcode object not initialised (setp)\n"));
-  if(opcode_udo_ended(obj)) {
+  if(opcode_dataspace_ended(snap.dataspace, snap.udo_flag)) {
     result = csound->PerfError(csound, &(p->h),
                                Str("opcode object UDO instance has ended\n"));
     goto done;
   }
-  if(context_check(csound, obj, p->h.insdshead) != OK) {
+  if(context_check(csound, snap.dataspace, p->h.insdshead) != OK) {
     result = csound->PerfError(csound, &(p->h),
                                Str("incompatible context for opcode %s \n"),
-                               obj->dataspace->optext->t.oentry->opname);
+                               snap.dataspace->optext->t.oentry->opname);
     goto done;
   }
   ndx = (uint32_t) index;
-  slots = input_slots(obj->dataspace->optext->t.oentry->intypes,
-                      obj->dataspace->optext->t.inArgCount);
-  if(obj->inargp != NULL && ndx < slots) previousArg = obj->inargp[ndx];
-  if(check_and_set_arg(csound, obj, ndx, arg) != 0) {
+  slots = input_slots(snap.dataspace->optext->t.oentry->intypes,
+                      snap.dataspace->optext->t.inArgCount);
+  if(snap.inargp != NULL && ndx < slots) previousArg = snap.inargp[ndx];
+  if(check_and_set_arg(csound, &snap, ndx, arg) != 0) {
     result = csound->PerfError(csound, &(p->h), Str("could not set arg %u \n"), ndx);
     goto done;
   }
-  if(opcode_dataspace_record_setp(csound, obj->dataspace, ndx, arg,
+  if(opcode_dataspace_record_setp(csound, snap.dataspace, ndx, arg,
                                   p->h.insdshead) != OK) {
-    if(previousArg != NULL && obj->inargp != NULL && ndx < slots)
-      obj->inargp[ndx] = previousArg;
-    opcode_dataspace_restore_setp(obj);
+    if(previousArg != NULL && snap.inargp != NULL && ndx < slots)
+      snap.inargp[ndx] = previousArg;
+    opcode_dataspace_restore_setp(snap.dataspace, snap.inargp);
     result = csound->PerfError(csound, &(p->h), Str("could not set arg %u \n"), ndx);
     goto done;
   }
-  opcode_dataspace_restore_setp(obj);
-  if(obj->udo_flag &&
-     user_opcode_rebind_args(csound, (UOPCODE *) obj->dataspace) != OK) {
+  opcode_dataspace_restore_setp(snap.dataspace, snap.inargp);
+  if(snap.udo_flag &&
+     user_opcode_rebind_args(csound, (UOPCODE *) snap.dataspace) != OK) {
     result = csound->PerfError(csound, &(p->h),
                                Str("could not rebind arguments "
                                    "for opcode obj %s\n"),
-                               obj->dataspace->optext->t.oentry->opname);
+                               snap.dataspace->optext->t.oentry->opname);
     goto done;
   }
   result = OK;
 done:
-  opcode_dataspace_release_run(runDataspace);
+  opcode_dataspace_release_run(csound, obj, &snap);
   return result;
 }
 
 static int32_t copy_opcode_output(CSOUND *csound, AOP *p,
                                   int32_t initializing) {
   OPCODEOBJ *obj = (OPCODEOBJ *) p->a;
+  OPDS *dataspace;
   cs_float index = *p->b;
   uint32_t ndx;
   cs_float **outargs;
@@ -2539,17 +2732,19 @@ static int32_t copy_opcode_output(CSOUND *csound, AOP *p,
   const CS_TYPE *sourceType;
   int32_t result;
 
-  if (UNLIKELY(obj == NULL || obj->dataspace == NULL)) {
+  dataspace = obj != NULL
+    ? (OPDS *) OPCODE_ATOMIC_LOAD_PTR(obj->dataspace) : NULL;
+  if (UNLIKELY(dataspace == NULL)) {
     return initializing
       ? csound->InitError(csound, Str("object not initialised\n"))
       : csound->PerfError(csound, &p->h, Str("object not initialised\n"));
   }
-  outargs = obj->outargp;
+  outargs = (cs_float **) OPCODE_ATOMIC_LOAD_PTR(obj->outargp);
   if (UNLIKELY(outargs == NULL)) {
     /* A perf-only Opcode object binds its argument pointers on the first
        performance call. Defer getp validation until that call has run. */
-    OENTRY *entry = obj->dataspace->optext != NULL
-      ? obj->dataspace->optext->t.oentry : NULL;
+    OENTRY *entry = dataspace->optext != NULL
+      ? dataspace->optext->t.oentry : NULL;
     if (initializing && entry != NULL && entry->init == NULL &&
         entry->perf != NULL) {
       return OK;
@@ -2559,19 +2754,19 @@ static int32_t copy_opcode_output(CSOUND *csound, AOP *p,
       : csound->PerfError(csound, &p->h,
                           Str("object not initialised\n"));
   }
-  if (UNLIKELY(context_check(csound, obj, p->h.insdshead) != OK)) {
+  if (UNLIKELY(context_check(csound, dataspace, p->h.insdshead) != OK)) {
     return initializing
       ? csound->InitError(csound, Str("incompatible context for opcode %s\n"),
-                          obj->dataspace->optext->t.oentry->opname)
+                          dataspace->optext->t.oentry->opname)
       : csound->PerfError(csound, &p->h,
                           Str("incompatible context for opcode %s\n"),
-                          obj->dataspace->optext->t.oentry->opname);
+                          dataspace->optext->t.oentry->opname);
   }
   // a negative index selects the first output, as the manual says; a NaN
   // is none, and a larger index is refused before it is converted
   if (index < 0) index = 0;
   if (UNLIKELY(index != index ||
-               index >= obj->dataspace->optext->t.outArgCount)) {
+               index >= dataspace->optext->t.outArgCount)) {
     return initializing
       ? csound->InitError(csound, Str("argument index out of range\n"))
       : csound->PerfError(csound, &p->h, Str("argument index out of range\n"));
