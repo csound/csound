@@ -583,9 +583,9 @@ static int32_t csound_array_copy_dimensions(CSOUND *csound,
     return OK;
 }
 
-static int32_t opcode_array_sources_copyable(CSOUND *csound,
-                                              const ARRAYDAT *source,
-                                              INSDS *ctx) {
+int32_t csound_opcode_array_sources_copyable(CSOUND *csound,
+                                             const ARRAYDAT *source,
+                                             INSDS *ctx) {
   size_t memberCount, i;
   if(source->arrayType != &CS_VAR_TYPE_OPCODEOBJ) return OK;
   if(UNLIKELY(csound_array_member_count(source, &memberCount) != OK))
@@ -635,7 +635,7 @@ static int32_t csound_array_copy(CSOUND *csound, ARRAYDAT *destination,
                  (memberCount > 0 && source->data == NULL))) {
         return NOTOK;
     }
-    if (UNLIKELY(opcode_array_sources_copyable(csound, source, ctx) != OK)) {
+    if (UNLIKELY(csound_opcode_array_sources_copyable(csound, source, ctx) != OK)) {
         return NOTOK;
     }
 

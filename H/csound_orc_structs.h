@@ -65,9 +65,12 @@ typedef enum {
   CSOUND_STRUCT_COPY_INDEPENDENT_ALLOW_ALLOCATION
 } CSOUND_STRUCT_COPY_MODE;
 int32_t csound_copy_struct_value(CSOUND *csound,
-                                 const CS_TYPE *structType,
-                                 void *dest, const void *src, INSDS *ctx,
-                                 CSOUND_STRUCT_COPY_MODE mode);
+                                   const CS_TYPE *structType,
+                                   void *dest, const void *src, INSDS *ctx,
+                                   CSOUND_STRUCT_COPY_MODE mode);
+int32_t csound_opcode_array_sources_copyable(CSOUND *csound,
+                                             const ARRAYDAT *source,
+                                             INSDS *ctx);
 int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree);
 void freeStructVarMemory(void *csnd, void *p);
 void csound_free_struct_members(CSOUND *csound, CS_STRUCT_VAR *var);

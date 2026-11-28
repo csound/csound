@@ -4016,8 +4016,27 @@ int32_t initStructVar(CSOUND* csound, void* p) {
   }
   for (i = 0; i < len; i++) {
     CS_VAR_MEM* mem = structVar->members[i];
-    mem->varType->copyValue(csound, mem->varType, &mem->value,
-                            init->inArgs[i], init->h.insdshead);
+    if (mem->varType == &CS_VAR_TYPE_ARRAY) {
+      if (csound_array_copy_independent(
+            csound, (ARRAYDAT *) &mem->value,
+            (const ARRAYDAT *) init->inArgs[i], init->h.insdshead,
+            CSOUND_ARRAY_COPY_ALLOW_ALLOCATION) != OK) {
+        return csound->InitError(csound, Str("could not initialise struct member\n"));
+      }
+    }
+    else if (mem->varType->userDefinedType) {
+      if (csound_copy_struct_value(csound, mem->varType, &mem->value,
+                                   init->inArgs[i], init->h.insdshead,
+                                   CSOUND_STRUCT_COPY_INDEPENDENT_ALLOW_ALLOCATION)
+          != OK) {
+        return csound->InitError(csound, Str("could not initialise struct member\n"));
+      }
+    }
+    else if (mem->varType->copyValue != NULL) {
+      mem->varType->copyValue(csound, mem->varType, &mem->value,
+                              init->inArgs[i], init->h.insdshead);
+    }
+    else return csound->InitError(csound, Str("could not initialise struct member\n"));
   }
 
   return CSOUND_SUCCESS;
@@ -4112,8 +4131,14 @@ static int32_t struct_opcode_sources_copyable(CSOUND *csound,
       OPCODE_COPY_STATUS status = opcode_dataspace_acquire_copy(
         csound, (OPCODEOBJ *) &member->value, ctx, &dataspace,
         NULL, NULL, NULL, NULL);
-      if (status != OPCODE_COPY_OK) return NOTOK;
-      opcode_dataspace_decref(dataspace);
+      if (status != OPCODE_COPY_OK && status != OPCODE_COPY_EMPTY) return NOTOK;
+      if (dataspace != NULL) opcode_dataspace_decref(dataspace);
+    }
+    else if (member->varType == &CS_VAR_TYPE_ARRAY) {
+      if (csound_opcode_array_sources_copyable(
+            csound, (const ARRAYDAT *) &member->value, ctx) != OK) {
+        return NOTOK;
+      }
     }
     else if (member->varType->userDefinedType &&
              struct_opcode_sources_copyable(csound, member->varType,
@@ -4159,6 +4184,12 @@ int32_t csound_copy_struct_value(CSOUND *csound,
     }
     if (d == s) {
       continue;
+    }
+    if (mode == CSOUND_STRUCT_COPY_SHARED_ARRAYS &&
+        d->varType == &CS_VAR_TYPE_ARRAY &&
+        csound_opcode_array_sources_copyable(
+          csound, (const ARRAYDAT *) &s->value, ctx) != OK) {
+      return NOTOK;
     }
     if (mode != CSOUND_STRUCT_COPY_SHARED_ARRAYS &&
         d->varType == &CS_VAR_TYPE_ARRAY) {
