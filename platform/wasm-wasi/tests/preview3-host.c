@@ -1,0 +1,100 @@
+#include <assert.h>
+#include <dirent.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <unistd.h>
+
+int main(int argc, char **argv) {
+  // The input result is a future, even when we close the stream before EOF.
+  char input;
+  assert(read(0, &input, 1) == 1 && input == 'a');
+  assert(close(0) == 0);
+#ifdef __wasm64__
+  assert(sizeof(void *) == 8);
+  // Use an address that would wrap to a different string if the bridge
+  // truncated a pointer to 32 bits.
+  const size_t pages = __builtin_wasm_memory_size(0);
+  assert(__builtin_wasm_memory_grow(0, 65537 - pages) != (size_t) -1);
+  char *high = (char *) (uintptr_t) 0x100001000ULL;
+  strcpy(high, "above-4GiB");
+  FILE *high_file = fopen(high, "w+");
+  assert(high_file);
+  assert(fwrite(high, 1, 10, high_file) == 10);
+  assert(fseek(high_file, 0, SEEK_SET) == 0);
+  assert(fread(high + 64, 1, 10, high_file) == 10);
+  assert(memcmp(high, high + 64, 10) == 0);
+  assert(fclose(high_file) == 0 && unlink(high) == 0);
+#else
+  assert(sizeof(void *) == 4);
+#endif
+  volatile long double a = 1.5L, b = 2.5L;
+  assert(a < b && a != b && lrintl(a) == 2);
+  assert(argc == 2 && strcmp(argv[1], "preview3") == 0);
+  char cwd[128];
+  assert(getcwd(cwd, sizeof(cwd)) && strcmp(cwd, "/project") == 0);
+  assert(mkdir("files", 0700) == 0);
+  FILE *file = fopen("files/audio", "w+");
+  assert(file);
+  const float samples[] = {0.125f, 0.25f, 0.5f, 1.0f};
+  assert(fwrite(samples, sizeof(float), 4, file) == 4);
+  assert(fseek(file, 4, SEEK_SET) == 0);
+  float value = 0;
+  assert(fread(&value, sizeof(float), 1, file) == 1 && value == 0.25f);
+  assert(fclose(file) == 0);
+  // SEEK_END must discard streams positioned before the end of the file.
+  int fd = open("files/audio", O_RDWR);
+  assert(fd >= 0);
+  assert(write(fd, "HEAD", 4) == 4);
+  assert(lseek(fd, 0, SEEK_END) == 16);
+  assert(write(fd, "TAIL", 4) == 4);
+  assert(lseek(fd, 0, SEEK_SET) == 0);
+  char marker[4];
+  assert(read(fd, marker, 4) == 4 && memcmp(marker, "HEAD", 4) == 0);
+  assert(lseek(fd, -4, SEEK_END) == 16);
+  assert(read(fd, marker, 4) == 4 && memcmp(marker, "TAIL", 4) == 0);
+  // Reads and writes without a seek must advance the same file offset.
+  assert(lseek(fd, 0, SEEK_SET) == 0);
+  assert(read(fd, marker, 1) == 1 && marker[0] == 'H');
+  assert(write(fd, "X", 1) == 1);
+  assert(read(fd, marker, 2) == 2 && memcmp(marker, "AD", 2) == 0);
+  assert(write(fd, "Y", 1) == 1);
+  assert(lseek(fd, 0, SEEK_SET) == 0);
+  assert(read(fd, marker, 4) == 4 && memcmp(marker, "HXAD", 4) == 0);
+  assert(read(fd, marker, 1) == 1 && marker[0] == 'Y');
+  assert(close(fd) == 0);
+  // Restore the sample data for the remaining file checks.
+  file = fopen("files/audio", "w");
+  assert(file && fwrite(samples, sizeof(float), 4, file) == 4);
+  assert(fclose(file) == 0);
+  struct stat info;
+  assert(stat("files/audio", &info) == 0 && info.st_size == 16);
+  assert(rename("files/audio", "files/renamed") == 0);
+  DIR *dir = opendir("files");
+  assert(dir);
+  int found = 0;
+  for (struct dirent *entry; (entry = readdir(dir)); )
+    found |= strcmp(entry->d_name, "renamed") == 0;
+  assert(found && closedir(dir) == 0);
+  assert(truncate("files/renamed", 4) == 0);
+  file = fopen("files/renamed", "r");
+  assert(file && fread(&value, sizeof(float), 1, file) == 1 && value == 0.125f);
+  assert(fread(&value, sizeof(float), 1, file) == 0 && feof(file));
+  assert(fclose(file) == 0);
+  assert(unlink("files/renamed") == 0 && rmdir("files") == 0);
+  errno = 0;
+  assert(fopen("missing", "r") == NULL && errno == ENOENT);
+  struct timespec now;
+  assert(clock_gettime(CLOCK_REALTIME, &now) == 0 && now.tv_sec > 0);
+  assert(clock_gettime(CLOCK_MONOTONIC, &now) == 0);
+  unsigned char random[32];
+  assert(getentropy(random, sizeof(random)) == 0);
+  puts("Preview 3 arguments, files, streams, clocks and random passed");
+  return 0;
+}

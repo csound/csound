@@ -149,6 +149,7 @@ def add_loader_metadata(module):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--compiler", required=True)
+    parser.add_argument("--linker", required=True)
     parser.add_argument("--source", required=True)
     parser.add_argument("--output", required=True)
     parser.add_argument("--source-include", required=True)
@@ -161,7 +162,7 @@ def main():
     output = Path(args.output).resolve()
     common = [
         args.compiler,
-        "--target=wasm32-wasip1",
+        "--target=wasm32-wasip3",
         "-fPIC",
         "-fno-builtin",
         # csoundCore.h needs the jmp_buf type, but this fixture never calls
@@ -198,15 +199,17 @@ def main():
         )
         subprocess.run(
             [
-                *common,
-                "-nostdlib",
-                "-Wl,--no-entry",
-                "-Wl,--export-all",
-                "-Wl,--import-memory",
-                "-Wl,--import-table",
-                f"-Wl,--global-base={PLUGIN_GLOBAL_BASE}",
-                f"-Wl,--table-base={PLUGIN_TABLE_BASE}",
-                "-Wl,-z,stack-size=131072",
+                # Link a core module directly. Clang's WASIp3 link step adds
+                # cooperative thread hooks that the native loader cannot supply.
+                args.linker,
+                "--no-entry",
+                "--export-all",
+                "--import-memory",
+                "--import-table",
+                f"--global-base={PLUGIN_GLOBAL_BASE}",
+                f"--table-base={PLUGIN_TABLE_BASE}",
+                "-z",
+                "stack-size=131072",
                 str(object_file),
                 "-o",
                 str(raw_module),

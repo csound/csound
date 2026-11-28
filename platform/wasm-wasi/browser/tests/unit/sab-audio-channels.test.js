@@ -6,7 +6,7 @@ import { sharedAudioChannels } from "../../src/utils/sab-audio-channels.js";
 describe("SAB audio channel storage", () => {
   it("keeps every channel separate across the full ring capacity", () => {
     const buffer = new SharedArrayBuffer(
-      MAX_CHANNELS * RING_BUFFER_SIZE * Float64Array.BYTES_PER_ELEMENT,
+      MAX_CHANNELS * RING_BUFFER_SIZE * Float32Array.BYTES_PER_ELEMENT,
     );
     const writer = sharedAudioChannels(buffer, MAX_CHANNELS);
     const reader = sharedAudioChannels(buffer, MAX_CHANNELS);
@@ -18,11 +18,11 @@ describe("SAB audio channel storage", () => {
     // The former byte offset made channel 1 frame 0 alias channel 0 frame 2048.
     writer[1][0] = -1;
     assert.equal(reader[1][0], -1);
-    assert.equal(reader[0][RING_BUFFER_SIZE / Float64Array.BYTES_PER_ELEMENT], 0.5);
+    assert.equal(reader[0][RING_BUFFER_SIZE / Float32Array.BYTES_PER_ELEMENT], 0.5);
   });
 
   it("uses separate input and output rings and accepts no input channels", () => {
-    const bytes = 2 * RING_BUFFER_SIZE * Float64Array.BYTES_PER_ELEMENT;
+    const bytes = 2 * RING_BUFFER_SIZE * Float32Array.BYTES_PER_ELEMENT;
     const input = sharedAudioChannels(new SharedArrayBuffer(bytes), 2);
     const output = sharedAudioChannels(new SharedArrayBuffer(bytes), 2);
     input[0][0] = 0.25;

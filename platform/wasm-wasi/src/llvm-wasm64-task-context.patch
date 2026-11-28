@@ -1,0 +1,16 @@
+--- a/lib/Target/WebAssembly/WebAssemblyAsmPrinter.cpp
++++ b/lib/Target/WebAssembly/WebAssemblyAsmPrinter.cpp
+@@ -268,11 +268,11 @@
+   } else if (Name == "__wasm_get_stack_pointer" ||
+              Name == "__wasm_get_tls_base") {
+     WasmSym->setType(wasm::WASM_SYMBOL_TYPE_FUNCTION);
+-    Returns.push_back(wasm::ValType::I32);
++    Returns.push_back(Subtarget.hasAddr64() ? wasm::ValType::I64 : wasm::ValType::I32);
+   } else if (Name == "__wasm_set_stack_pointer" ||
+              Name == "__wasm_set_tls_base") {
+     WasmSym->setType(wasm::WASM_SYMBOL_TYPE_FUNCTION);
+-    Params.push_back(wasm::ValType::I32);
++    Params.push_back(Subtarget.hasAddr64() ? wasm::ValType::I64 : wasm::ValType::I32);
+   } else { // Function symbols
+     WasmSym->setType(wasm::WASM_SYMBOL_TYPE_FUNCTION);
+     WebAssembly::getLibcallSignature(Subtarget, Name, Returns, Params);

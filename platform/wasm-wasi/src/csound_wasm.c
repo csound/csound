@@ -43,12 +43,19 @@ char *allocStringMem(int length) {
 void freeStringMem(char *ptr) { free(ptr); }
 
 __attribute__((used))
-cs_double *allocFloatArray(int length) {
-  return allocWasmArray(length, sizeof(cs_double));
+cs_float *allocFloatArray(int length) {
+  return allocWasmArray(length, sizeof(cs_float));
 }
-void freeFloatArrayMem(cs_double *ptr) { free(ptr); }
+void freeFloatArrayMem(cs_float *ptr) { free(ptr); }
 
 int sizeOfMidiStruct() { return sizeof(CS_MIDIDEVICE); }
+int csoundWasiOentrySize(void) { return sizeof(OENTRY); }
+int csoundWasiOentryFunctionOffset(int index) {
+  static const size_t offsets[] = {
+    offsetof(OENTRY, init), offsetof(OENTRY, perf), offsetof(OENTRY, deinit)
+  };
+  return index >= 0 && index < 3 ? (int) offsets[index] : -1;
+}
 CS_MIDIDEVICE *allocCsMidiDeviceStruct(int num) {
   return allocWasmArray(num, sizeof(CS_MIDIDEVICE));
 }
@@ -291,7 +298,7 @@ static void csoundWasiCReadlineCallback(CSOUND *csound, void *userData,
                               prompt != NULL ? strlen(prompt) : 0);
 }
 
-/* wasi-libc declares system(), but Preview 1 has no implementation or exec
+/* wasi-libc declares system(), but WASI has no implementation or exec
  * syscall. Browser hosts provide this explicit extension; command builds do
  * not import it. The host returns a system()-style status, not a WASI errno. */
 int csoundWasiJsSystem(const char *)
@@ -433,13 +440,13 @@ char* getMidiOutFileName(CSOUND *csound) {
    Calling the generic channel API live would traverse (and may extend) the
    channel hash table while the init worker can also create channels. */
 __attribute__((used))
-uint32_t *csoundGetControlChannelsWasi(CSOUND *csound) {
+uintptr_t *csoundGetControlChannelsWasi(CSOUND *csound) {
   controlChannelInfo_t *channels = NULL;
   int32_t count = csoundListChannels(csound, &channels);
-  uint32_t *snapshot = NULL;
-  if (count < 0 || count > (INT_MAX / (int) sizeof(uint32_t) - 1) / 2)
+  uintptr_t *snapshot = NULL;
+  if (count < 0 || count > (INT_MAX / (int) sizeof(uintptr_t) - 1) / 2)
     goto done;
-  snapshot = malloc((1 + (size_t) count * 2) * sizeof(uint32_t));
+  snapshot = malloc((1 + (size_t) count * 2) * sizeof(uintptr_t));
   if (snapshot == NULL)
     goto done;
   snapshot[0] = 0;
@@ -454,9 +461,9 @@ uint32_t *csoundGetControlChannelsWasi(CSOUND *csound) {
       snapshot = NULL;
       goto done;
     }
-    uint32_t offset = 1 + snapshot[0]++ * 2;
-    snapshot[offset] = (uint32_t) (uintptr_t) channels[i].name;
-    snapshot[offset + 1] = (uint32_t) (uintptr_t) value;
+    size_t offset = 1 + snapshot[0]++ * 2;
+    snapshot[offset] = (uintptr_t) channels[i].name;
+    snapshot[offset + 1] = (uintptr_t) value;
   }
 done:
   csoundDeleteChannelList(csound, channels);
@@ -591,8 +598,8 @@ char* csoundGetStringChannelWasi(CSOUND* csound, const char *channelName) {
 
 /**
  * Returns the raw data pointer for a UGEN_VAR so JS can create
- * a Float64Array view over wasm memory.
- * JS usage: new Float64Array(memory.buffer, ptr, size / 8)
+ * a sample view over wasm memory. This legacy name does not set precision.
+ * Float builds use Float32Array(memory.buffer, ptr, size / sizeof(cs_float)).
  */
 __attribute__((used))
 void* csoundUgenVarGetDataAsFloat64Array(UGEN_VAR* var) {
@@ -636,33 +643,3 @@ void printDebug(const char *log) {
     (* printDebugCallback)(log, strlen(log));
   }
 }
-
-
-#if !defined(CSOUND_WASI_REALTIME)
-// WASI setjmp/longjmp stubs for the linker
-// These are weak symbols to allow the linker to resolve them
-// Function signatures match what's expected by the linker
-__attribute__((weak))
-void __wasm_setjmp(int a, int b, void *env) {
-  // WASI doesn't support setjmp, return failure
-  (void)a; (void)b; // Suppress unused parameter warnings
-}
-
-__attribute__((weak))
-int __wasm_setjmp_test(int a, void *env) {
-  // WASI doesn't support setjmp, return failure
-  (void)a; // Suppress unused parameter warning
-  return -1;
-}
-
-__attribute__((weak))
-void __wasm_longjmp(void *env, int val) {
-  // Report through JS host so callers can catch a normal exception instead
-  // of aborting the entire WASI instance via proc_exit.
-  char message[64];
-  (void) env;
-  snprintf(message, sizeof(message), "CSOUND_WASI_LONGJMP:%d", val);
-  printDebug(message);
-  __builtin_trap();
-}
-#endif /* !CSOUND_WASI_REALTIME: threaded builds use libc libsetjmp. */

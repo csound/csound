@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { assertBrowserReactor } from "../../src/utils/browser-reactor.js";
+import { assertBrowserReactor, assertBrowserPrecision } from "../../src/utils/browser-reactor.js";
 
 const string = (value) => [value.length, ...new TextEncoder().encode(value)];
 const section = (id, bytes) => [id, bytes.length, ...bytes];
@@ -27,6 +27,29 @@ const fixture = (functions, stack = true) =>
   );
 
 describe("browser reactor boundary", () => {
+  it("requires float samples and double internal calculations", () => {
+    assert.doesNotThrow(() =>
+      assertBrowserPrecision({
+        csoundGetSizeOfCsFloat: () => 4,
+        csoundGetSizeOfCsDouble: () => 8,
+      }),
+    );
+    for (const [sampleSize, scoreSize] of [
+      [8, 8],
+      [4, 4],
+      [8, 4],
+    ]) {
+      assert.throws(
+        () =>
+          assertBrowserPrecision({
+            csoundGetSizeOfCsFloat: () => sampleSize,
+            csoundGetSizeOfCsDouble: () => scoreSize,
+          }),
+        /4-byte samples/,
+      );
+    }
+    assert.throws(() => assertBrowserPrecision({}), /4-byte samples/);
+  });
   it("accepts a reactor with the child entry and plugin stack export", () => {
     assert.doesNotThrow(() => assertBrowserReactor(fixture(["_initialize", "wasi_thread_start"])));
   });

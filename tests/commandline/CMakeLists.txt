@@ -108,33 +108,19 @@ if(Python3_Interpreter_FOUND)
   endif()
 
   if(HAVE_WASMTIME AND TARGET csound-bin AND USE_DOUBLE)
-    set(_wasm_test_compiler "${CSOUND_WASM_TEST_C_COMPILER}")
-    set(_wasm_test_sysroot "${CSOUND_WASM_TEST_SYSROOT}")
-    if(NOT _wasm_test_compiler AND
-       DEFINED ENV{WASI_SDK_PATH} AND
-       EXISTS "$ENV{WASI_SDK_PATH}/bin/clang")
-      set(_wasm_test_compiler "$ENV{WASI_SDK_PATH}/bin/clang")
-      if(NOT _wasm_test_sysroot)
-        set(_wasm_test_sysroot "$ENV{WASI_SDK_PATH}/share/wasi-sysroot")
-      endif()
-    endif()
-    if(NOT _wasm_test_compiler)
-      find_program(_wasm_test_program
-        NAMES wasm32-wasip1-clang wasm32-wasi-clang wasm32-unknown-wasi-clang
-      )
-      set(_wasm_test_compiler "${_wasm_test_program}")
-    endif()
+    find_program(CSOUND_WASM_TEST_C_COMPILER NAMES wasm32-wasip3-clang
+      DOC "WASI Preview 3 C compiler used to build the Wasmtime test plugin")
+    get_filename_component(_wasm_test_tool_dir "${CSOUND_WASM_TEST_C_COMPILER}" DIRECTORY)
+    find_program(CSOUND_WASM_TEST_LINKER NAMES wasm-ld HINTS "${_wasm_test_tool_dir}"
+      DOC "WebAssembly linker used to build the Wasmtime test plugin")
+    set(CSOUND_WASM_TEST_SYSROOT "" CACHE PATH "Optional sysroot for the Wasmtime test plugin")
 
-    set(CSOUND_WASM_TEST_C_COMPILER "${_wasm_test_compiler}" CACHE FILEPATH
-      "WASI C compiler used to build the Wasmtime test plugin" FORCE)
-    set(CSOUND_WASM_TEST_SYSROOT "${_wasm_test_sysroot}" CACHE PATH
-      "WASI sysroot used to build the Wasmtime test plugin" FORCE)
-
-    if(CSOUND_WASM_TEST_C_COMPILER)
+    if(CSOUND_WASM_TEST_C_COMPILER AND CSOUND_WASM_TEST_LINKER)
       set(_wasm_test_plugin
         "${CMAKE_CURRENT_BINARY_DIR}/wasmtime/velvetlp.wasm")
       set(_wasm_fixture_args
         "--compiler=${CSOUND_WASM_TEST_C_COMPILER}"
+        "--linker=${CSOUND_WASM_TEST_LINKER}"
         "--source=${CMAKE_CURRENT_SOURCE_DIR}/wasmtime/velvetlp.wasm.fixture.c"
         "--output=${_wasm_test_plugin}"
         "--source-include=${PROJECT_SOURCE_DIR}/include"
@@ -176,7 +162,7 @@ if(Python3_Interpreter_FOUND)
       )
     else()
       message(STATUS
-        "WASI C compiler not found; Wasmtime opcode tests are disabled")
+        "WASI Preview 3 compiler or wasm-ld missing. Wasmtime opcode tests are disabled.")
     endif()
 
     unset(_wasm_fixture_args)

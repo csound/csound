@@ -13,20 +13,27 @@
  * limitations under the License.
  */
 
-import { dlinit } from "./dlinit";
-import { WASI } from "./filesystem/wasi";
+import { dlinit } from "./dlinit.js";
+import { WASI } from "./filesystem/preview3.js";
 import { createSystem } from "./filesystem/system.js";
 import { bufferMessageText } from "./utils/message-stream.js";
 import { decoder, uint2String } from "./utils/text-encoders.js";
 import { getBinaryHeaderData as parseBinaryHeaderData } from "./utils/wasm-dylink.js";
 import { Inflate } from "./zlib/inflate.js";
 import { preparePluginImports } from "./utils/plugin-imports.js";
+import { assertBrowserPrecision } from "./utils/browser-reactor.js";
+import {
+  moduleABI,
+  nativeExports,
+  nativeCallbacks,
+  memory64Imports,
+  tableNumbers,
+} from "./utils/wasm64.js";
 
 export const getBinaryHeaderData = (input) => parseBinaryHeaderData(input, decoder);
 
 const PAGE_SIZE = 65536;
 const PAGES_PER_MB = 16; // 1048576 bytes per MB / PAGE_SIZE
-const WASI_LONGJMP_PREFIX = "CSOUND_WASI_LONGJMP:";
 const MAX_ALIGNMENT_EXPONENT = 30;
 // Bound table growth and failed-load cleanup for one plugin.
 const MAX_PLUGIN_TABLE_ENTRIES = 1000000;
@@ -40,10 +47,6 @@ const alignmentFromExponent = (exponent) => {
 };
 
 const alignUp = (value, alignment) => Math.ceil(value / alignment) * alignment;
-
-const wasmLongjmp = (_, value) => {
-  throw new Error(`csound exit with code: ${value}`);
-};
 
 export const csoundWasiJsMessageCallback = ({ memory, messagePort, streamBuffer }) => {
   return function (_, __, length_, offset) {
@@ -106,36 +109,20 @@ const assertPluginExports = (pluginExports) => {
   }
 };
 
-export default async function loadWasm({ wasmDataURI, withPlugins = [], messagePort }) {
-  const wasi = new WASI({ preopens: { "/": "/" } });
-  const jumpTable = new Map(); // maps jmpbuf pointers to JS frames
-  let tempRet0 = 0; // for 64-bit return value handling
-
-  const saveSetjmp = (jmpbuf, label) => {
-    jumpTable.set(jmpbuf, label);
-    return 0;
-  };
-
-  const testSetjmp = (jmpbuf) => (jumpTable.has(jmpbuf) ? 1 : 0);
-
-  const longjmp = (jmpbuf, value) => {
-    const label = jumpTable.get(jmpbuf);
-    if (!label) {
-      throw new Error(`Invalid longjmp target ${jmpbuf}`);
-    }
-    throw new Error(`csound exit with code: ${value}`);
-  };
-
-  const getTempRet0 = () => tempRet0;
-
-  const setTempRet0 = (value) => {
-    tempRet0 = value;
-  };
-
+export default async function loadWasm({
+  wasmDataURI,
+  withPlugins = [],
+  messagePort,
+  getRandomValues,
+}) {
+  const wasi = new WASI({ preopens: { "/": "/" }, getRandomValues });
   const wasmCompressed = new Uint8Array(wasmDataURI);
   const wasmZlib = new Inflate(wasmCompressed);
 
   const wasmBytes = wasmZlib.decompress();
+  const module = await WebAssembly.compile(wasmBytes);
+  const abi = moduleABI(module);
+  const memory64 = abi?.["pointerSize"] === 8;
 
   const magicData = getBinaryHeaderData(wasmBytes);
   // if (magicData === "static") {
@@ -178,15 +165,11 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
   // write over anything if it overflows.
   //
   const fixedMemoryBase = 128 * PAGES_PER_MB;
-  const initialMemory = Math.ceil(
-    (memorySize + alignmentFromExponent(memoryAlign)) / PAGE_SIZE,
-  );
+  const initialMemory = Math.ceil((memorySize + alignmentFromExponent(memoryAlign)) / PAGE_SIZE);
   const pluginsMemory = Math.ceil(
     withPlugins.reduce(
       (accumulator, { headerData }) =>
-        accumulator +
-        headerData.memorySize +
-        alignmentFromExponent(headerData.memoryAlign),
+        accumulator + headerData.memorySize + alignmentFromExponent(headerData.memoryAlign),
       0,
     ) / PAGE_SIZE,
   );
@@ -195,21 +178,31 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
 
   // Request a max of 1gb of memory so devices use less CPU when growing memory. This has a noticeable effect on low-
   // powered devices like the Oculus Quest 2.
+  /** @suppress {checkTypes} */
   const memory = new WebAssembly.Memory({
-    initial: totalInitialMemory,
-    maximum: 1024 * PAGES_PER_MB,
+    "address": memory64 ? "i64" : "i32",
+    initial: memory64
+      ? BigInt(Math.max(totalInitialMemory, abi["memoryMinimum"]))
+      : totalInitialMemory,
+    maximum: memory64 ? BigInt(8192 * PAGES_PER_MB) : 1024 * PAGES_PER_MB,
   });
 
   // const table = new WebAssembly.Table({ initial: tableSize + 1, element: "anyfunc" });
 
   wasi.setMemory(memory);
 
-  const memoryBase = new WebAssembly.Global({ value: "i32", mutable: false }, fixedMemoryBase);
-  const tableBase = new WebAssembly.Global({ value: "i32", mutable: false }, 1);
+  const memoryBase = new WebAssembly.Global(
+    { value: memory64 ? "i64" : "i32", mutable: false },
+    memory64 ? BigInt(fixedMemoryBase) : fixedMemoryBase,
+  );
+  const tableBase = new WebAssembly.Global(
+    { value: abi?.["table64"] ? "i64" : "i32", mutable: false },
+    abi?.["table64"] ? BigInt(1) : 1,
+  );
 
   /** @suppress {checkTypes} */
-  const module = await WebAssembly.compile(wasmBytes);
-  const options = wasi.getImports(module);
+  const bridge = memory64 ? memory64Imports(module, memory, wasi) : undefined;
+  const options = bridge ? bridge.imports : wasi.getImports(module);
   const withPlugins_ = [];
   const cachedPlugins = [];
   const pluginByRequestedPath = new Map();
@@ -292,7 +285,9 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
       try {
         const wasmPluginBytes = wasi.readFile(path);
         if (!isWasmBinary(wasmPluginBytes)) {
-          console.error(`Unable to load requested Csound plugin '${path}' from the WASI filesystem.`);
+          console.error(
+            `Unable to load requested Csound plugin '${path}' from the WASI filesystem.`,
+          );
           result = -1;
           return;
         }
@@ -340,17 +335,7 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
   options["env"]["__table_base"] = tableBase;
   options["env"]["csoundLoadModules"] = csoundLoadModules;
   options["env"]["csoundLoadExternals"] = csoundLoadExternals;
-  options["env"]["csoundWasiJsSystem"] = createSystem(wasi, (log) =>
-    messagePort.post({ log }),
-  );
-
-  // Add setjmp/longjmp functions to the environment
-  options["env"]["saveSetjmp"] = saveSetjmp;
-  options["env"]["testSetjmp"] = testSetjmp;
-  options["env"]["longjmp"] = longjmp;
-  options["env"]["__wasm_longjmp"] = wasmLongjmp;
-  options["env"]["getTempRet0"] = getTempRet0;
-  options["env"]["setTempRet0"] = setTempRet0;
+  options["env"]["csoundWasiJsSystem"] = createSystem(wasi, (log) => messagePort.post({ log }));
 
   const streamBuffer = [];
   options["env"]["csoundWasiJsMessageCallback"] = csoundWasiJsMessageCallback({
@@ -372,21 +357,17 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
   options["env"]["printDebugCallback"] = (offset, length) => {
     const buf = new Uint8Array(memory.buffer, offset, length);
     const string = uint2String(buf);
-    if (string.startsWith(WASI_LONGJMP_PREFIX)) {
-      const code = Number.parseInt(string.slice(WASI_LONGJMP_PREFIX.length), 10);
-      throw new Error(`csound longjmp with code: ${Number.isNaN(code) ? -1 : code}`);
-    }
     console.log(string);
   };
 
   // options["GOT.mem"] = options["GOT.mem"] || {};
   // options["GOT.func"] = options["GOT.func"] || {};
 
-  /**
-   * @suppress {checkTypes}
-   * @type {WasmInst} */
+  nativeCallbacks(options, abi);
   const instance = await WebAssembly.instantiate(module, options);
-  const moduleExports = Object.assign({}, instance["exports"]);
+  if (bridge) bridge.connect(instance);
+  assertBrowserPrecision(instance.exports, memory64 ? 8 : 4);
+  const moduleExports = wasi.wrapExports(nativeExports(instance["exports"], abi));
   /**
    * @suppress {checkTypes}
    * @type {WasmInst} */
@@ -471,7 +452,23 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
 
     /** @suppress {checkTypes} */
     const plugin = precompiledPlugin || new WebAssembly.Module(wasmPluginBytes);
-    const pluginOptions = wasi.getImports(plugin);
+    const pluginAbi = moduleABI(plugin);
+    if ((pluginAbi?.["pointerSize"] || 4) !== (memory64 ? 8 : 4))
+      throw new TypeError(
+        "Plugin pointer width does not match the Csound engine; rebuild it with the matching SDK",
+      );
+    // A plugin's private libc can need WASI functions absent from the engine.
+    // Its adapter shares the engine heap and filesystem, but owns its handles.
+    const pluginBridge =
+      memory64 && WebAssembly.Module.customSections(plugin, "csound.wasi-bridge").length > 0
+        ? memory64Imports(plugin, memory, wasi, true)
+        : undefined;
+    if (pluginBridge) pluginBridge.connect(instance);
+    const pluginOptions = pluginBridge
+      ? pluginBridge.imports
+      : memory64
+        ? Object.fromEntries(Object.entries(options).filter(([name]) => name.startsWith("wasi:")))
+        : wasi.getImports(plugin);
     const pluginImports = WebAssembly.Module.imports(plugin);
     const pluginExports = WebAssembly.Module.exports(plugin);
     if (!assertPluginExports(pluginExports)) {
@@ -521,7 +518,13 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
           tableLimit,
           16,
         );
-        pluginTable = new WebAssembly.Table({ initial: isolatedInitial, element: "anyfunc" });
+        /** @suppress {checkTypes} */
+        const rawTable = new WebAssembly.Table({
+          initial: abi?.["table64"] ? BigInt(isolatedInitial) : isolatedInitial,
+          element: "anyfunc",
+          "address": abi?.["table64"] ? "i64" : "i32",
+        });
+        pluginTable = tableNumbers(rawTable, abi?.["table64"]);
         for (let tableIndex = 0; tableIndex < pluginRuntime.table.length; tableIndex += 1) {
           const tableFn = pluginRuntime.table.get(tableIndex);
           if (tableFn) {
@@ -539,41 +542,54 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
 
       pluginOptions["env"] = Object.assign({}, pluginOptions["env"]);
       pluginOptions["env"]["memory"] = memory;
-      pluginOptions["env"]["__indirect_function_table"] = pluginTable;
+      // Each side module owns its TLS, but every C call uses the current
+      // engine task's stack, including raw callbacks from the function table.
+      let pluginTls = memory64 ? BigInt(0) : 0;
+      pluginOptions["env"]["__wasm_get_stack_pointer"] = options["env"]["__wasm_get_stack_pointer"];
+      pluginOptions["env"]["__wasm_set_stack_pointer"] = options["env"]["__wasm_set_stack_pointer"];
+      pluginOptions["env"]["__wasm_get_tls_base"] = () => pluginTls;
+      pluginOptions["env"]["__wasm_set_tls_base"] = (value) => {
+        pluginTls = value;
+      };
+      pluginOptions["env"]["__indirect_function_table"] = pluginTable["raw"] || pluginTable;
       const pluginMemory = hasDylink
         ? allocatePluginMemory(pluginMemorySize, pluginMemoryAlign)
         : { allocation: 0, memoryBaseValue: 0 };
       pluginMemoryAllocation = pluginMemory.allocation;
       pluginOptions["env"]["__memory_base"] = new WebAssembly.Global(
-        { value: "i32", mutable: false },
-        pluginMemory.memoryBaseValue,
+        { value: memory64 ? "i64" : "i32", mutable: false },
+        memory64 ? BigInt(pluginMemory.memoryBaseValue) : pluginMemory.memoryBaseValue,
       );
       pluginOptions["env"]["__table_base"] = new WebAssembly.Global(
-        { value: "i32", mutable: false },
-        pluginTableBaseValue,
+        { value: abi?.["table64"] ? "i64" : "i32", mutable: false },
+        abi?.["table64"] ? BigInt(pluginTableBaseValue) : pluginTableBaseValue,
       );
 
       for (const pluginImport of pluginImports) {
         if (pluginImport.module !== "env") {
           continue;
         }
-        if (pluginImport.kind === "global" && pluginImport.name === "__stack_pointer") {
-          const hostStackPointer = instance_["exports"]["__stack_pointer"];
+        if (
+          pluginImport.kind === "global" &&
+          ["__stack_pointer", "__init_stack_pointer"].includes(pluginImport.name)
+        ) {
+          const hostStackPointer = instance_["exports"][pluginImport.name];
           if (!hostStackPointer) {
             throw new Error("The WebAssembly host does not export __stack_pointer");
           }
-          pluginOptions["env"]["__stack_pointer"] = hostStackPointer;
+          pluginOptions["env"][pluginImport.name] = hostStackPointer;
         }
       }
       const linkImports = preparePluginImports({
         imports: pluginImports,
         exports: pluginExports,
-        hostExports: instance_["exports"],
+        hostExports: memory64 ? instance["exports"] : instance_["exports"],
         // Keep API cleanup on direct calls; tables require raw Wasm functions.
         hostTableExports: instance["exports"],
         options: pluginOptions,
         importedSymbols: headerData.importedSymbols,
         memoryBase: pluginMemory.memoryBaseValue,
+        memory64,
       });
       /**
        * @suppress {checkTypes}
@@ -591,15 +607,19 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
       });
 
       if (typeof pluginInstance.exports["__wasm_apply_data_relocs"] === "function") {
-        pluginInstance.exports["__wasm_apply_data_relocs"]();
+        wasi.task(() => pluginInstance.exports["__wasm_apply_data_relocs"]());
       }
-      pluginInstance.exports.__wasm_call_ctors();
+      wasi.task(() => pluginInstance.exports.__wasm_call_ctors());
       pluginMemoryAllocation = 0;
       if (sharedTableReserved) {
         sharedTableEnd = sharedTableLimit;
         sharedTableReserved = false;
       }
-      return { instance: pluginInstance, table: pluginTable, wasmPluginBytes };
+      return {
+        instance: { exports: wasi.wrapExports(nativeExports(pluginInstance.exports, pluginAbi)) },
+        table: pluginTable,
+        wasmPluginBytes,
+      };
     } finally {
       if (sharedTableReserved) {
         for (let tableIndex = sharedTableBase; tableIndex < sharedTableLimit; tableIndex += 1) {

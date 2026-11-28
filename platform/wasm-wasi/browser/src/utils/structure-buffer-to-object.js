@@ -13,23 +13,39 @@
  * limitations under the License.
  */
 
-import { sizeOfPrimitive } from "./native-sizes.js";
+import { structLayout } from "./native-sizes.js";
+import { readPointer } from "./wasm64.js";
 import { uint2String } from "./text-encoders.js";
 import { trimNull } from "./trim-null.js";
 
-export const structBufferToObject = (jsStruct, buffer) => {
-  const [result] = jsStruct.reduce(
-    ([parameters, offset], [parameterName, primitive, ...rest]) => {
-      const currentSize =
-        primitive === "char" ? sizeOfPrimitive[primitive] * rest[0] : sizeOfPrimitive[primitive];
-      const currentValue =
-        primitive === "char"
-          ? trimNull(uint2String(buffer.subarray(offset, currentSize))) || ""
-          : buffer[offset];
-      parameters[parameterName] = currentValue;
-      return [parameters, offset + currentSize];
-    },
-    [{}, 0],
-  );
+/** Copy a native struct into JS values using its engine's little-endian ABI. */
+export const structBufferToObject = (jsStruct, buffer, wasm) => {
+  const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+  const result = {};
+  for (const { name, primitive, offset, size } of structLayout(jsStruct, wasm).fields) {
+    let value;
+    switch (primitive) {
+      case "char": {
+        value = trimNull(uint2String(buffer.subarray(offset, offset + size)));
+        break;
+      }
+      case "int": {
+        value = view.getInt32(offset, true);
+        break;
+      }
+      case "uint64": {
+        value = view.getBigUint64(offset, true);
+        break;
+      }
+      case "ptr": {
+        value = readPointer(wasm, view, offset);
+        break;
+      }
+      default: {
+        value = size === 4 ? view.getFloat32(offset, true) : view.getFloat64(offset, true);
+      }
+    }
+    result[name] = value;
+  }
   return result;
 };

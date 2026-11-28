@@ -251,6 +251,7 @@ char *csound_get_directory_for_path(CSOUND* csound, const char * path) {
     }
 
     if (lastIndex == NULL) {
+      csound->Free(csound, tempPath);
       return cwd;
     }
 
