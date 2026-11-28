@@ -56,6 +56,37 @@ int32_t opcode_object_init(CSOUND *csound, OPRUN *p);
 int32_t opcode_object_perf(CSOUND *csound, OPRUN *p);
 int32_t opcode_run_perf(CSOUND *csound, OPRUN *p);
 int32_t opcode_array_perf(CSOUND *csound, OPRUN *p);
+typedef enum {
+  OPCODE_COPY_OK = 0,
+  OPCODE_COPY_EMPTY = 1,
+  OPCODE_COPY_ENDED = 2,
+  OPCODE_COPY_CONTEXT = 3
+} OPCODE_COPY_STATUS;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int32_t opcode_dataspace_refcount(OPDS *dataspace);
+int32_t opcode_dataspace_incref(OPDS *dataspace);
+int32_t opcode_dataspace_decref(OPDS *dataspace);
+void opcode_dataspace_setref(OPDS *dataspace, uint32_t count);
+void opcode_dataspace_free(CSOUND *csound, OPDS *dataspace);
+int32_t opcode_dataspace_release(CSOUND *csound, OPCODEOBJ *obj,
+                                 int32_t runDeinit);
+void opcode_dataspace_reclaim(CSOUND *csound);
+void opcode_dataspace_drain(CSOUND *csound);
+typedef void (*OPCODE_ACQUIRE_HOOK)(CSOUND *, OPCODEOBJ *, OPDS *);
+void opcode_set_acquire_hook(OPCODE_ACQUIRE_HOOK hook);
+OPCODE_COPY_STATUS opcode_dataspace_acquire_copy(CSOUND *csound,
+                                                 OPCODEOBJ *src, INSDS *ctx,
+                                                 OPDS **dataspace,
+                                                 size_t *size,
+                                                 cs_float ***outargp,
+                                                 cs_float ***inargp,
+                                                 uint32_t *udo_flag);
+int32_t context_check(CSOUND *csound, OPDS *dataspace, INSDS *insds);
+int32_t opcode_udo_ended(OPCODEOBJ *obj);
 /* the opcode objects a run or perf call runs: how many, and each one's
    dataspace */
 int32_t opcode_run_count(OPDS *op);
@@ -65,3 +96,7 @@ int32_t copy_opcode_obj(CSOUND *csound, ASSIGN *p);
 int32_t set_opcode_param(CSOUND *csound, AOP *p);
 int32_t get_opcode_output_init(CSOUND *csound, AOP *p);
 int32_t get_opcode_output(CSOUND *csound, AOP *p); 
+
+#ifdef __cplusplus
+}
+#endif

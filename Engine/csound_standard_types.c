@@ -32,6 +32,8 @@
 #include "swtdat.h"
 #include "wavelets.h"
 #include "find_opcode.h"
+#include "opcode.h"
+#include "udo.h"
 #include <stdlib.h>
 
 /* MEMORY COPYING FUNCTIONS */
@@ -581,10 +583,33 @@ static int32_t csound_array_copy_dimensions(CSOUND *csound,
     return OK;
 }
 
+int32_t csound_opcode_array_sources_copyable(CSOUND *csound,
+                                             const ARRAYDAT *source,
+                                             INSDS *ctx) {
+  size_t memberCount, i;
+  if(source->arrayType != &CS_VAR_TYPE_OPCODEOBJ) return OK;
+  if(UNLIKELY(csound_array_member_count(source, &memberCount) != OK))
+    return NOTOK;
+  for(i = 0; i < memberCount; i++) {
+    OPCODEOBJ *obj = (OPCODEOBJ *) ((char *) source->data +
+                                    i * (size_t) source->arrayMemberSize);
+    OPDS *dataspace = NULL;
+    OPCODE_COPY_STATUS status =
+      opcode_dataspace_acquire_copy(csound, obj, ctx, &dataspace,
+                                    NULL, NULL, NULL, NULL);
+    if(UNLIKELY(status == OPCODE_COPY_ENDED ||
+                status == OPCODE_COPY_CONTEXT)) return NOTOK;
+    if(UNLIKELY(status != OPCODE_COPY_OK &&
+                status != OPCODE_COPY_EMPTY)) return NOTOK;
+    if(status == OPCODE_COPY_OK) opcode_dataspace_decref(dataspace);
+  }
+  return OK;
+}
+
 static int32_t csound_array_copy(CSOUND *csound, ARRAYDAT *destination,
-                                 const ARRAYDAT *source, INSDS *ctx,
-                                 int32_t shareStructured,
-                                 int32_t allowAllocation)
+                                  const ARRAYDAT *source, INSDS *ctx,
+                                  int32_t shareStructured,
+                                  int32_t allowAllocation)
 {
     CS_VARIABLE *var = NULL;
     size_t memberCount;
@@ -608,6 +633,9 @@ static int32_t csound_array_copy(CSOUND *csound, ARRAYDAT *destination,
     }
     if (UNLIKELY(csound_array_member_count(source, &memberCount) != OK ||
                  (memberCount > 0 && source->data == NULL))) {
+        return NOTOK;
+    }
+    if (UNLIKELY(csound_opcode_array_sources_copyable(csound, source, ctx) != OK)) {
         return NOTOK;
     }
 
@@ -813,27 +841,54 @@ static void opcodedef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* de
                        get_opcode_short_name(csound, p->entries->entries[0]->opname));
 }
 
-// from opcode.c
-int32_t context_check(CSOUND* csound, OPCODEOBJ *p, INSDS *ctx);
 static void opcode_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
-                      const void* src, INSDS *ctx) {
+                       const void* src, INSDS *ctx) {
+  OPCODEOBJ *p, *psrc;
+  OPDS *dataspace = NULL;
+  cs_float **outargp = NULL, **inargp = NULL;
+  size_t size = 0;
+  uint32_t udo_flag = 0;
+  OPCODE_COPY_STATUS status;
   if (UNLIKELY(src == NULL || dest == NULL)) return;
-  OPCODEOBJ *p = (OPCODEOBJ *) dest;
-  OPCODEOBJ *psrc = (OPCODEOBJ *) src;
-  if(psrc->dataspace != NULL && context_check(csound, psrc, ctx) != 0) {
+  p = (OPCODEOBJ *) dest;
+  psrc = (OPCODEOBJ *) src;
+  if(p->readonly) {
+    csound->Warning(csound, Str("opcode instance var is read-only:"
+                       " copy value bypassed\n"));
+    return;
+  }
+  status = opcode_dataspace_acquire_copy(csound, psrc, ctx, &dataspace,
+                                         &size, &outargp, &inargp, &udo_flag);
+  if(status == OPCODE_COPY_ENDED) {
+    csound->Warning(csound, Str("opcode object UDO instance has ended: "
+                       "copy value bypassed\n"));
+    return;
+  }
+  if(status == OPCODE_COPY_CONTEXT) {
     csound->Warning(csound, Str("mismatching context: copy value bypassed\n"));
     return;
   }
-  if(!p->readonly) {
-   // a spare dataspace belongs to the variable that deleted it
-   struct opds *spare = p->spare;
-   memcpy(dest, src, sizeof(OPCODEOBJ));
-   p->readonly = 0; // clear readonly flag (which is not copied)
-   p->spare = spare;
+  if(status == OPCODE_COPY_EMPTY) {
+    opcode_dataspace_release(csound, p, 1);
+    p->size = 0;
+    p->udo_flag = 0;
+    p->readonly = 0;
+    return;
   }
-  else csound->Warning(csound, Str("opcode instance var is read-only:"
-                       " copy value bypassed\n"));
+  if(p->dataspace == dataspace) {
+    opcode_dataspace_decref(dataspace);
+    p->readonly = 0;
+    return;
+  }
+  opcode_dataspace_release(csound, p, 1);
+  p->dataspace = dataspace;
+  p->size = size;
+  p->outargp = outargp;
+  p->inargp = inargp;
+  p->udo_flag = udo_flag;
+  p->readonly = 0;
 }
+
 
 
 static void instrdef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
@@ -848,6 +903,23 @@ static void instrdef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* des
   }
   else csound->Warning(csound, Str("instr ref var %s is read-only: copy value bypassed\n"),
                        p->instr ? p->instr->insname : "(uninitialized)");
+}
+
+static void opcode_free_variable_memory(void *csnd, void *p) {
+  CSOUND *csound = (CSOUND *)csnd;
+  OPCODEOBJ *obj = (OPCODEOBJ *) p;
+  if (obj == NULL) return;
+  if (obj->dataspace != NULL)
+    opcode_dataspace_release(csound, obj, 0);
+  if (obj->spare != NULL) {
+    if (((UOPCODE *) obj->spare)->ip == NULL)
+      opcode_dataspace_free(csound, (OPDS *) obj->spare);
+    obj->spare = NULL;
+  }
+  obj->dataspace = NULL;
+  obj->outargp = obj->inargp = NULL;
+  obj->size = 0;
+  obj->udo_flag = 0;
 }
 
 static void instr_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
@@ -1467,7 +1539,7 @@ const CS_TYPE CS_VAR_TYPE_OPCODEREF = {
 
 const CS_TYPE CS_VAR_TYPE_OPCODEOBJ = {
   "Opcode", "opcode instance reference", CS_ARG_TYPE_BOTH,
-  create_opcode, opcode_copy_value, NULL, NULL, 0
+  create_opcode, opcode_copy_value, opcode_free_variable_memory, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_INSTR = {

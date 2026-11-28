@@ -27,6 +27,7 @@
 #include "arrays_internal.h"
 #include "csound_orc_semantics.h"
 #include "csound_standard_types.h"
+#include "opcode.h"
 
 static int32_t is_intentionally_empty_array(CSOUND *csound,
                                             const ARRAYDAT *dat)
@@ -132,6 +133,23 @@ int32_t tabfill(CSOUND *csound, TABFILL *p)
   int32_t i, size;
   size_t memMyfltSize;
   cs_float  **valp = p->iargs;
+  if (p->ans != NULL && p->ans->arrayType == &CS_VAR_TYPE_OPCODEOBJ) {
+    for (i = 0; i < nargs; i++) {
+      OPCODEOBJ *src = (OPCODEOBJ *) valp[i];
+      OPDS *dataspace = NULL;
+      OPCODE_COPY_STATUS status =
+        opcode_dataspace_acquire_copy(csound, src, p->h.insdshead,
+                                      &dataspace, NULL, NULL, NULL, NULL);
+      if (status == OPCODE_COPY_ENDED || status == OPCODE_COPY_CONTEXT) {
+        const char *message = status == OPCODE_COPY_ENDED
+          ? Str("opcode object UDO instance has ended\n")
+          : Str("could not copy opcode object: incompatible context\n");
+        if (csound->mode == 1) return csound->InitError(csound, "%s", message);
+        return csound->PerfError(csound, &p->h, "%s", message);
+      }
+      if (status == OPCODE_COPY_OK) opcode_dataspace_decref(dataspace);
+    }
+  }
   if (UNLIKELY(tabinit(csound, p->ans, nargs, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
 
@@ -3472,6 +3490,21 @@ int32_t tabscale1(CSOUND *csound, TABSCALE *p)
   else return NOTOK;
 }
 
+static int32_t tabcopy_opcode_array(CSOUND *csound, TABCPY *p,
+                                    int32_t initializing)
+{
+  if (UNLIKELY(csound_array_copy_independent(
+                 csound, p->dst, p->src, p->h.insdshead,
+                 initializing ? CSOUND_ARRAY_COPY_ALLOW_ALLOCATION
+                              : CSOUND_ARRAY_COPY_NO_ALLOCATION) != OK)) {
+    return initializing
+      ? csound->InitError(csound, "%s\n", Str("could not copy opcode object array"))
+      : csound->PerfError(csound, &p->h, "%s\n",
+                          Str("could not copy opcode object array"));
+  }
+  return OK;
+}
+
 int32_t tabcopy(CSOUND *csound, TABCPY *p)
 {
   if (UNLIKELY(p->src->data==NULL) || p->src->dimensions <= 0 )
@@ -3486,6 +3519,8 @@ int32_t tabcopy(CSOUND *csound, TABCPY *p)
     return csound->InitError(csound, "%s\n",
                              Str("array-variable types do not match"));
   if (p->src == p->dst) return OK;
+  if (p->src->arrayType == &CS_VAR_TYPE_OPCODEOBJ)
+    return tabcopy_opcode_array(csound, p, 1);
 
   /* The registered copy routine owns element lifetime and keeps dimensions,
      capacity, and backing-storage metadata in sync. Reimplementing resize here
@@ -3550,6 +3585,8 @@ int32_t tabcopyk(CSOUND *csound, TABCPY *p)
                              Str("array-variable types do not match"));
 
   if (p->src == p->dst) return OK;
+  if (p->src->arrayType == &CS_VAR_TYPE_OPCODEOBJ)
+    return tabcopy_opcode_array(csound, p, 0);
 
   if (p->src->arrayType != NULL && p->src->arrayType->userDefinedType) {
     if (UNLIKELY(csound_array_copy_independent(
@@ -3577,6 +3614,8 @@ int32_t tabcopy1(CSOUND *csound, TABCPY *p)
                              Str("array-variable dimensions do not match"));
 
   if (p->src == p->dst) return OK;
+  if (p->src->arrayType == &CS_VAR_TYPE_OPCODEOBJ)
+    return tabcopy_opcode_array(csound, p, 1);
 
   CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY,
                               p->dst, p->src, p->h.insdshead);

@@ -214,6 +214,7 @@ static void csp_orc_sa_interlocksf(CSOUND *csound, int32_t code, char *name)
       if (code&WR) csp_set_add(csound, ww, "##wri");
       if (code&IR) csp_set_add(csound, rr, "##int");
       if (code&IW) csp_set_add(csound, ww, "##int");
+      if (code&OBJW) csp_set_add(csound, ww, "##opcode");
       csp_orc_sa_global_read_write_add_list(csound, ww, rr);
       /* Deprecation is reported once, after resolving the opcode overload. */
     }

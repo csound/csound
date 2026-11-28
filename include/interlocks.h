@@ -51,6 +51,8 @@
 #define IW (0x0400)
 #define IB (0x0600)
 
+#define OBJW (0x1000)
+
 // Declare but not defined
 #define UNDEFINED (0x0800)
 

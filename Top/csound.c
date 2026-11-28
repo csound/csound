@@ -29,6 +29,7 @@
 #endif
 
 #include "csoundCore.h"
+#include "opcode.h"
 #include "csmodule.h"
 #include "csound_orc_optimize.h"
 #include "corfile.h"
@@ -1996,6 +1997,7 @@ static void reset(CSOUND *csound) {
   while (csound->filedir[n]) /* Clear source directory */
     csound->Free(csound, csound->filedir[n++]);
 
+  opcode_dataspace_drain(csound);
   memreset(csound);
 
   /**
