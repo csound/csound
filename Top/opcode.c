@@ -88,14 +88,20 @@ struct opcode_retired {
   void *ptr;
 };
 
+typedef struct opcode_setp_slot OPCODE_SETP_SLOT;
 typedef struct opcode_setp_entry OPCODE_SETP_ENTRY;
+
+struct opcode_setp_slot {
+  OPCODE_SETP_SLOT *next;
+  CS_VAR_MEM *storage;
+  cs_float *value;
+};
 
 struct opcode_setp_entry {
   OPCODE_RETIRED retire;
   OPCODE_SETP_ENTRY *next;
+  OPCODE_SETP_SLOT *slot;
   uint32_t ndx;
-  CS_VAR_MEM *storage;
-  cs_float *value;
 };
 
 enum {
@@ -113,6 +119,20 @@ typedef struct {
 
 static OPCODE_RETIRED *opcode_retired_head;
 static OPCODE_THREAD_LOCAL int32_t opcode_reclaiming;
+static volatile long opcode_acquire_readers;
+static OPCODE_ACQUIRE_HOOK opcode_acquire_hook;
+
+void opcode_set_acquire_hook(OPCODE_ACQUIRE_HOOK hook) {
+  opcode_acquire_hook = hook;
+}
+
+static void opcode_acquire_readers_enter(void) {
+  ATOMIC_INCR(opcode_acquire_readers);
+}
+
+static void opcode_acquire_readers_leave(void) {
+  ATOMIC_DECR(opcode_acquire_readers);
+}
 
 void opcode_dataspace_free(CSOUND *csound, OPDS *dataspace);
 static void opcode_dataspace_free_now(CSOUND *csound, OPDS *dataspace);
@@ -1445,8 +1465,14 @@ static int32_t opcode_dataspace_ended(OPDS *dataspace, uint32_t udo_flag) {
 }
 
 int32_t opcode_udo_ended(OPCODEOBJ *obj) {
-  return opcode_dataspace_ended(
-    (OPDS *) OPCODE_ATOMIC_LOAD_PTR(obj->dataspace), obj->udo_flag);
+  OPDS *dataspace;
+  int32_t ended;
+  if(obj == NULL) return 0;
+  opcode_acquire_readers_enter();
+  dataspace = (OPDS *) OPCODE_ATOMIC_LOAD_PTR(obj->dataspace);
+  ended = opcode_dataspace_ended(dataspace, obj->udo_flag);
+  opcode_acquire_readers_leave();
+  return ended;
 }
 
 #define OPCODE_RUN_SCOPE_MAX 64
@@ -1487,6 +1513,7 @@ struct opcode_dataspace_header {
   uint32_t retired;
   OPCODE_RETIRED retire;
   OPCODE_SETP_ENTRY *setp;
+  OPCODE_SETP_SLOT *setp_slots;
   void *allocation;
 };
 
@@ -1501,18 +1528,16 @@ static OPCODE_DATASPACE_HEADER *opcode_dataspace_header(OPDS *dataspace) {
     ((char *) dataspace - OPCODE_DATASPACE_PREFIX);
 }
 
-void opcode_dataspace_reclaim(CSOUND *csound) {
-  OPCODE_RETIRED *list, *next, *other = NULL;
-  if(csound == NULL || opcode_reclaiming) return;
-  opcode_reclaiming = 1;
-  list = opcode_retired_take();
+static int32_t opcode_dataspace_process_retired(CSOUND *csound,
+                                                OPCODE_RETIRED *list) {
+  OPCODE_RETIRED *next, *other = NULL;
+  int32_t found = 0;
   while(list != NULL) {
     next = list->next;
     if(list->csound == csound) {
+      found = 1;
       if(list->kind == OPCODE_RETIRE_SETP) {
-        OPCODE_SETP_ENTRY *entry = (OPCODE_SETP_ENTRY *) list->ptr;
-        opcode_setp_storage_free(csound, entry->storage);
-        csound->Free(csound, entry);
+        csound->Free(csound, list->ptr);
       }
       else if(list->kind == OPCODE_RETIRE_DATASPACE) {
         OPDS *dataspace = (OPDS *) list->ptr;
@@ -1532,6 +1557,31 @@ void opcode_dataspace_reclaim(CSOUND *csound) {
     list = next;
   }
   opcode_retired_repush(other);
+  return found;
+}
+
+void opcode_dataspace_reclaim(CSOUND *csound) {
+  OPCODE_RETIRED *list;
+  if(csound == NULL || opcode_reclaiming) return;
+  opcode_reclaiming = 1;
+  list = opcode_retired_take();
+  if(ATOMIC_GET(opcode_acquire_readers) != 0) {
+    opcode_retired_repush(list);
+    opcode_reclaiming = 0;
+    return;
+  }
+  opcode_dataspace_process_retired(csound, list);
+  opcode_reclaiming = 0;
+}
+
+void opcode_dataspace_drain(CSOUND *csound) {
+  OPCODE_RETIRED *list;
+  if(csound == NULL || opcode_reclaiming) return;
+  opcode_reclaiming = 1;
+  for(;;) {
+    list = opcode_retired_take();
+    if(!opcode_dataspace_process_retired(csound, list)) break;
+  }
   opcode_reclaiming = 0;
 }
 
@@ -1544,14 +1594,16 @@ static void opcode_dataspace_release_temp(CSOUND *csound, OPDS *dataspace,
                                           int32_t runDeinit);
 
 static int32_t opcode_dataspace_acquire_run(CSOUND *csound, OPCODEOBJ *obj,
-                                           OPCODE_SNAPSHOT *snap) {
+                                            OPCODE_SNAPSHOT *snap) {
   OPDS *dataspace;
+  int32_t result = NOTOK;
   if(obj == NULL || snap == NULL) return NOTOK;
   memset(snap, 0, sizeof(*snap));
   if(opcode_run_depth >= OPCODE_RUN_SCOPE_MAX) return NOTOK;
+  opcode_acquire_readers_enter();
   for(;;) {
     dataspace = (OPDS *) OPCODE_ATOMIC_LOAD_PTR(obj->dataspace);
-    if(dataspace == NULL) return NOTOK;
+    if(dataspace == NULL) break;
     if(!opcode_dataspace_try_incref(dataspace)) continue;
     snap->dataspace = dataspace;
     snap->outargp = (cs_float **) OPCODE_ATOMIC_LOAD_PTR(obj->outargp);
@@ -1560,10 +1612,13 @@ static int32_t opcode_dataspace_acquire_run(CSOUND *csound, OPCODEOBJ *obj,
     snap->udo_flag = obj->udo_flag;
     if((OPDS *) OPCODE_ATOMIC_LOAD_PTR(obj->dataspace) == dataspace) {
       opcode_run_stack[opcode_run_depth++] = dataspace;
-      return OK;
+      result = OK;
+      break;
     }
     opcode_dataspace_release_temp(csound, dataspace, 1);
   }
+  opcode_acquire_readers_leave();
+  return result;
 }
 
 static void opcode_dataspace_release_run(CSOUND *csound, OPCODEOBJ *obj,
@@ -1595,7 +1650,7 @@ static int32_t opcode_dataspace_was_initialized(OPDS *dataspace) {
 }
 
 static CS_VAR_MEM *opcode_setp_storage_new(CSOUND *csound, cs_float *arg,
-                                           INSDS *ctx) {
+                                            INSDS *ctx) {
   const CS_TYPE *type = csoundGetTypeForArg(arg);
   CS_VARIABLE *var;
   CS_VAR_MEM *storage;
@@ -1638,8 +1693,34 @@ static void opcode_setp_storage_free(CSOUND *csound, CS_VAR_MEM *storage) {
   csound->Free(csound, storage);
 }
 
+static OPCODE_SETP_SLOT *opcode_setp_slot_new(CSOUND *csound,
+                                              OPCODE_DATASPACE_HEADER *header,
+                                              cs_float *arg, INSDS *ctx) {
+  CS_VAR_MEM *storage = opcode_setp_storage_new(csound, arg, ctx);
+  OPCODE_SETP_SLOT *slot, *head;
+  if(storage == NULL) return NULL;
+  slot = (OPCODE_SETP_SLOT *) csound->Calloc(csound, sizeof(*slot));
+  if(slot == NULL) {
+    opcode_setp_storage_free(csound, storage);
+    return NULL;
+  }
+  slot->storage = storage;
+  slot->value = (cs_float *) ((char *) storage + CS_VAR_TYPE_OFFSET);
+  do {
+    head = (OPCODE_SETP_SLOT *) OPCODE_ATOMIC_LOAD_PTR(header->setp_slots);
+    slot->next = head;
+  } while(!OPCODE_ATOMIC_CAS_PTR(header->setp_slots, slot, head));
+  return slot;
+}
+
+static void opcode_setp_slot_free(CSOUND *csound, OPCODE_SETP_SLOT *slot) {
+  if(slot == NULL) return;
+  opcode_setp_storage_free(csound, slot->storage);
+  csound->Free(csound, slot);
+}
+
 static void opcode_dataspace_free_setp_nodes(CSOUND *csound,
-                                              OPCODE_SETP_ENTRY *entry) {
+                                               OPCODE_SETP_ENTRY *entry) {
   while(entry != NULL) {
     OPCODE_SETP_ENTRY *next = entry->next;
     csound->Free(csound, entry);
@@ -1648,7 +1729,7 @@ static void opcode_dataspace_free_setp_nodes(CSOUND *csound,
 }
 
 static void opcode_dataspace_retire_setp_list(CSOUND *csound,
-                                              OPCODE_SETP_ENTRY *entry) {
+                                               OPCODE_SETP_ENTRY *entry) {
   while(entry != NULL) {
     OPCODE_SETP_ENTRY *next = entry->next;
     entry->retire.next = NULL;
@@ -1673,13 +1754,30 @@ static OPCODE_SETP_ENTRY *opcode_dataspace_detach_setp(OPDS *dataspace) {
   return entries;
 }
 
+static void opcode_dataspace_free_setp_slots(CSOUND *csound,
+                                             OPCODE_DATASPACE_HEADER *header) {
+  OPCODE_SETP_SLOT *slot, *next, *slots;
+  if(header == NULL) return;
+  do {
+    slots = (OPCODE_SETP_SLOT *) OPCODE_ATOMIC_LOAD_PTR(header->setp_slots);
+  } while(!OPCODE_ATOMIC_CAS_PTR(header->setp_slots, NULL, slots));
+  for(slot = slots; slot != NULL; slot = next) {
+    next = slot->next;
+    opcode_setp_slot_free(csound, slot);
+  }
+}
+
 static void opcode_dataspace_free_setp(CSOUND *csound, OPDS *dataspace) {
+  OPCODE_DATASPACE_HEADER *header;
+  if(dataspace == NULL) return;
+  header = opcode_dataspace_header(dataspace);
   opcode_dataspace_retire_setp_list(csound,
                                     opcode_dataspace_detach_setp(dataspace));
+  opcode_dataspace_free_setp_slots(csound, header);
 }
 
 static OPCODE_SETP_ENTRY *opcode_dataspace_find_setp(OPDS *dataspace,
-                                                      uint32_t ndx) {
+                                                       uint32_t ndx) {
   OPCODE_DATASPACE_HEADER *header = opcode_dataspace_header(dataspace);
   OPCODE_SETP_ENTRY *entry;
   for(entry = (OPCODE_SETP_ENTRY *) OPCODE_ATOMIC_LOAD_PTR(header->setp);
@@ -1689,9 +1787,9 @@ static OPCODE_SETP_ENTRY *opcode_dataspace_find_setp(OPDS *dataspace,
 }
 
 static OPCODE_SETP_ENTRY *opcode_dataspace_clone_setp(CSOUND *csound,
-                                                      OPDS *dataspace,
-                                                      uint32_t ndx,
-                                                      OPCODE_SETP_ENTRY *entry) {
+                                                       OPDS *dataspace,
+                                                       uint32_t ndx,
+                                                       OPCODE_SETP_ENTRY *entry) {
   OPCODE_DATASPACE_HEADER *header = opcode_dataspace_header(dataspace);
   OPCODE_SETP_ENTRY *old =
     (OPCODE_SETP_ENTRY *) OPCODE_ATOMIC_LOAD_PTR(header->setp);
@@ -1704,8 +1802,7 @@ static OPCODE_SETP_ENTRY *opcode_dataspace_clone_setp(CSOUND *csound,
         return NULL;
       }
       copy->ndx = old->ndx;
-      copy->storage = old->storage;
-      copy->value = old->value;
+      copy->slot = old->slot;
       *tail = copy;
       tail = &copy->next;
     }
@@ -1717,30 +1814,28 @@ static OPCODE_SETP_ENTRY *opcode_dataspace_clone_setp(CSOUND *csound,
     return NULL;
   }
   next->ndx = ndx;
-  next->storage = entry->storage;
-  next->value = entry->value;
+  next->slot = entry->slot;
   *tail = next;
   return head;
 }
 
 static int32_t opcode_dataspace_record_setp(CSOUND *csound, OPDS *dataspace,
-                                             uint32_t ndx, cs_float *arg,
-                                             INSDS *ctx) {
+                                              uint32_t ndx, cs_float *arg,
+                                              INSDS *ctx) {
   OPCODE_DATASPACE_HEADER *header;
   OPCODE_SETP_ENTRY *entry, *old, *copy;
-  CS_VAR_MEM *storage;
+  OPCODE_SETP_SLOT *slot;
   if(dataspace == NULL || arg == NULL) return NOTOK;
-  storage = opcode_setp_storage_new(csound, arg, ctx);
-  if(storage == NULL) return NOTOK;
+  header = opcode_dataspace_header(dataspace);
   entry = (OPCODE_SETP_ENTRY *) csound->Calloc(csound, sizeof(*entry));
-  if(entry == NULL) {
-    opcode_setp_storage_free(csound, storage);
+  if(entry == NULL) return NOTOK;
+  slot = opcode_setp_slot_new(csound, header, arg, ctx);
+  if(slot == NULL) {
+    csound->Free(csound, entry);
     return NOTOK;
   }
   entry->ndx = ndx;
-  entry->storage = storage;
-  entry->value = (cs_float *) ((char *) storage + CS_VAR_TYPE_OFFSET);
-  header = opcode_dataspace_header(dataspace);
+  entry->slot = slot;
   for(;;) {
     old = (OPCODE_SETP_ENTRY *) OPCODE_ATOMIC_LOAD_PTR(header->setp);
     copy = opcode_dataspace_clone_setp(csound, dataspace, ndx, entry);
@@ -1752,7 +1847,6 @@ static int32_t opcode_dataspace_record_setp(CSOUND *csound, OPDS *dataspace,
     }
     opcode_dataspace_free_setp_nodes(csound, copy);
   }
-  opcode_setp_storage_free(csound, storage);
   csound->Free(csound, entry);
   return NOTOK;
 }
@@ -1761,11 +1855,11 @@ static cs_float *opcode_dataspace_setp_arg(OPDS *dataspace, uint32_t ndx) {
   OPCODE_SETP_ENTRY *entry;
   if(dataspace == NULL) return NULL;
   entry = opcode_dataspace_find_setp(dataspace, ndx);
-  return entry != NULL ? entry->value : NULL;
+  return entry != NULL && entry->slot != NULL ? entry->slot->value : NULL;
 }
 
 static void opcode_dataspace_restore_setp(OPDS *dataspace,
-                                          cs_float **inargp) {
+                                           cs_float **inargp) {
   const TEXT *t;
   uint32_t slots;
   OPCODE_SETP_ENTRY *entry;
@@ -1775,7 +1869,8 @@ static void opcode_dataspace_restore_setp(OPDS *dataspace,
   for(entry = (OPCODE_SETP_ENTRY *)
         OPCODE_ATOMIC_LOAD_PTR(opcode_dataspace_header(dataspace)->setp);
       entry != NULL; entry = entry->next)
-    if(entry->ndx < slots) inargp[entry->ndx] = entry->value;
+    if(entry->slot != NULL && entry->ndx < slots)
+      inargp[entry->ndx] = entry->slot->value;
 }
 
 
@@ -1802,6 +1897,7 @@ static OPDS *opcode_dataspace_new(CSOUND *csound, OENTRY *entry, OPDS *h) {
     header = opcode_dataspace_header(dataspace);
     header->allocation = allocation;
     header->setp = NULL;
+    header->setp_slots = NULL;
     memset(&header->retire, 0, sizeof(header->retire));
     header->retired = 0;
     *opcode_dataspace_refslot(dataspace) = 1;
@@ -1935,8 +2031,7 @@ static void opcode_dataspace_release_temp(CSOUND *csound, OPDS *dataspace,
   if(dataspace == NULL) return;
   rc = opcode_dataspace_decref_cas(dataspace);
   if(rc == 0) {
-    opcode_dataspace_retire_setp_list(csound,
-                                      opcode_dataspace_detach_setp(dataspace));
+    opcode_dataspace_free_setp(csound, dataspace);
     opcode_dataspace_retire(csound, dataspace, runDeinit, 1);
   }
 }
@@ -1949,18 +2044,23 @@ OPCODE_COPY_STATUS opcode_dataspace_acquire_copy(CSOUND *csound,
                                                   cs_float ***inargp,
                                                   uint32_t *udo_flag) {
   OPDS *ds, *current;
+  OPCODE_COPY_STATUS status = OPCODE_COPY_EMPTY;
   if(src == NULL) return OPCODE_COPY_EMPTY;
+  opcode_acquire_readers_enter();
   for(;;) {
     ds = (OPDS *) OPCODE_ATOMIC_LOAD_PTR(src->dataspace);
-    if(ds == NULL) return OPCODE_COPY_EMPTY;
+    if(ds == NULL) break;
+    if(opcode_acquire_hook != NULL) opcode_acquire_hook(csound, src, ds);
     if(!opcode_dataspace_try_incref(ds)) continue;
     if(opcode_dataspace_ended(ds, src->udo_flag)) {
       opcode_dataspace_release_temp(csound, ds, 0);
-      return OPCODE_COPY_ENDED;
+      status = OPCODE_COPY_ENDED;
+      break;
     }
     if(context_check(csound, ds, ctx) != OK) {
       opcode_dataspace_release_temp(csound, ds, 0);
-      return OPCODE_COPY_CONTEXT;
+      status = OPCODE_COPY_CONTEXT;
+      break;
     }
     current = (OPDS *) OPCODE_ATOMIC_LOAD_PTR(src->dataspace);
     if(current == ds) {
@@ -1971,10 +2071,13 @@ OPCODE_COPY_STATUS opcode_dataspace_acquire_copy(CSOUND *csound,
       if(inargp != NULL) *inargp = (cs_float **)
         OPCODE_ATOMIC_LOAD_PTR(src->inargp);
       if(udo_flag != NULL) *udo_flag = src->udo_flag;
-      return OPCODE_COPY_OK;
+      status = OPCODE_COPY_OK;
+      break;
     }
     opcode_dataspace_release_temp(csound, ds, 1);
   }
+  opcode_acquire_readers_leave();
+  return status;
 }
 
 int32_t opcode_dataspace_release(CSOUND *csound, OPCODEOBJ *obj,
@@ -2001,8 +2104,7 @@ int32_t opcode_dataspace_release(CSOUND *csound, OPCODEOBJ *obj,
       freeAfter = 0;
     }
     if(freeSpare != NULL) opcode_dataspace_retire(csound, freeSpare, 1, 1);
-    opcode_dataspace_retire_setp_list(csound,
-                                      opcode_dataspace_detach_setp(dataspace));
+    opcode_dataspace_free_setp(csound, dataspace);
     opcode_dataspace_retire(csound, dataspace, runDeinit, freeAfter);
   }
   return rc;

@@ -1,5 +1,5 @@
 <CsTest>
-description = "setp overrides on two distinct indices stay stable across successive control cycles"
+description = "setp overrides on two distinct indices stay stable across three control cycles"
 
 [expect]
 exit = 0
@@ -28,12 +28,12 @@ instr 1
   out:k init 0
   if count == 0 then
     setp object, 0, overrideA
-  else
+  elseif count == 1 then
     setp object, 1, overrideB
   endif
   out run object, callA, callB
   count = count + 1
-  if count == 2 then
+  if count == 3 then
     printks "sum: %g\n", 0, out
     turnoff
   endif

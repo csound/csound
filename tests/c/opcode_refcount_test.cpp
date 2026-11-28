@@ -3,9 +3,23 @@
 #include <string>
 #include "csound.h"
 #include "csdl.h"
+#include "opcode.h"
 
 namespace {
 const char *header = "sr = 1000\nksmps = 10\n0dbfs = 1\n";
+
+int forcedAcquireCalls = 0;
+
+void forcedAcquireHook(CSOUND *csound, OPCODEOBJ *src, OPDS *) {
+  if(++forcedAcquireCalls != 1) return;
+  opcode_set_acquire_hook(nullptr);
+  opcode_dataspace_release(csound, src, 0);
+  opcode_dataspace_reclaim(csound);
+}
+
+struct AcquireHookGuard {
+  ~AcquireHookGuard() { opcode_set_acquire_hook(nullptr); }
+};
 
 struct AlignedProbe {
   OPDS h;
@@ -182,6 +196,67 @@ TEST_F(OpcodeRefcountTests, RegisteredOpcodeDataspaceIs16ByteAligned) {
   EXPECT_EQ(csoundErrCnt(csound), 0) << output;
   EXPECT_NE(output.find("aligned probe: 1"), std::string::npos) << output;
   EXPECT_EQ(alignedProbeAddress & 15u, 0u);
+}
+
+TEST(OpcodeRetiredQueueTests, RetiredNodesDoNotOutliveInstance) {
+  CSOUND *first = csoundCreate(nullptr, nullptr);
+  ASSERT_NE(first, nullptr);
+  csoundCreateMessageBuffer(first, 0);
+  ASSERT_EQ(csoundSetOption(first, "-n -d -m0"), CSOUND_SUCCESS);
+  ASSERT_EQ(csoundCompileOrc(first,
+    (std::string(header) +
+     "instr 1\n"
+     "  obj:Opcode = create(opcoderef(\"lincos\"))\n"
+     "  result:k run obj, 0.5, 0, 10\n"
+     "endin\n").c_str(), 0), 0);
+  csoundEventString(first, "i 1 0 1", 0);
+  ASSERT_EQ(csoundStart(first), 0);
+  ASSERT_EQ(csoundPerformKsmps(first), 0);
+  csoundDestroy(first);
+
+  CSOUND *second = csoundCreate(nullptr, nullptr);
+  ASSERT_NE(second, nullptr);
+  csoundCreateMessageBuffer(second, 0);
+  ASSERT_EQ(csoundSetOption(second, "-n -d -m0"), CSOUND_SUCCESS);
+  ASSERT_EQ(csoundCompileOrc(second,
+    (std::string(header) +
+     "instr 1\n"
+     "  dummy:k init 0\n"
+     "endin\n").c_str(), 0), 0);
+  csoundEventString(second, "i 1 0 1", 0);
+  ASSERT_EQ(csoundStart(second), 0);
+  ASSERT_EQ(csoundPerformKsmps(second), 0);
+  csoundDestroy(second);
+}
+
+TEST(OpcodeRetiredQueueTests, ReclaimDefersUntilAcquireReaderFinishes) {
+  CSOUND *csound = csoundCreate(nullptr, nullptr);
+  ASSERT_NE(csound, nullptr);
+  csoundCreateMessageBuffer(csound, 0);
+  ASSERT_EQ(csoundSetOption(csound, "-n -d -m0"), CSOUND_SUCCESS);
+  ASSERT_EQ(csoundCompileOrc(csound,
+    (std::string(header) +
+     "instr 1\n"
+     "  shared@global:Opcode = create(opcoderef(\"lincos\"))\n"
+     "endin\n"
+     "instr 2\n"
+     "  local:Opcode = shared\n"
+     "endin\n").c_str(), 0), 0);
+  csoundEventString(csound, "i 1 0 0.01\ni 2 0.05 0.01\ne\n", 0);
+  ASSERT_EQ(csoundStart(csound), 0);
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+
+  forcedAcquireCalls = 0;
+  AcquireHookGuard guard;
+  opcode_set_acquire_hook(forcedAcquireHook);
+  for(int i = 0; i < 20 && forcedAcquireCalls == 0; i++) {
+    int result = csoundPerformKsmps(csound);
+    ASSERT_TRUE(result == 0 || result == 1 || result == 2) << result;
+  }
+  EXPECT_EQ(forcedAcquireCalls, 1);
+  for(int i = 0; i < 5; i++)
+    if(csoundPerformKsmps(csound) != 0) break;
+  csoundDestroy(csound);
 }
 }
 
