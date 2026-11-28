@@ -77,6 +77,7 @@
 #endif
 
 typedef struct opcode_retired OPCODE_RETIRED;
+typedef struct opcode_dataspace_header OPCODE_DATASPACE_HEADER;
 
 struct opcode_retired {
   OPCODE_RETIRED *next;
@@ -114,6 +115,8 @@ static OPCODE_RETIRED *opcode_retired_head;
 static OPCODE_THREAD_LOCAL int32_t opcode_reclaiming;
 
 void opcode_dataspace_free(CSOUND *csound, OPDS *dataspace);
+static void opcode_dataspace_free_now(CSOUND *csound, OPDS *dataspace);
+static OPCODE_DATASPACE_HEADER *opcode_dataspace_header(OPDS *dataspace);
 static void opcode_setp_storage_free(CSOUND *csound, CS_VAR_MEM *storage);
 
 static void opcode_retired_push(OPCODE_RETIRED *node) {
@@ -135,36 +138,6 @@ static void opcode_retired_repush(OPCODE_RETIRED *list) {
     opcode_retired_push(list);
     list = next;
   }
-}
-
-void opcode_dataspace_reclaim(CSOUND *csound) {
-  OPCODE_RETIRED *list, *next, *other = NULL;
-  if(csound == NULL || opcode_reclaiming) return;
-  opcode_reclaiming = 1;
-  list = opcode_retired_take();
-  while(list != NULL) {
-    next = list->next;
-    if(list->csound == csound) {
-      if(list->kind == OPCODE_RETIRE_SETP) {
-        OPCODE_SETP_ENTRY *entry = (OPCODE_SETP_ENTRY *) list->ptr;
-        opcode_setp_storage_free(csound, entry->storage);
-        csound->Free(csound, entry);
-      }
-      else if(list->kind == OPCODE_RETIRE_DATASPACE) {
-        OPDS *dataspace = (OPDS *) list->ptr;
-        if(list->runDeinit && dataspace->deinit != NULL)
-          dataspace->deinit(csound, dataspace);
-        if(list->freeAfter) opcode_dataspace_free(csound, dataspace);
-      }
-    }
-    else {
-      list->next = other;
-      other = list;
-    }
-    list = next;
-  }
-  opcode_retired_repush(other);
-  opcode_reclaiming = 0;
 }
 
 /* Print opcodes in system */
@@ -1508,13 +1481,14 @@ static int32_t check_consistency(OPCODE_SNAPSHOT *snap, cs_float **args,
   return OK;
 }
 
-typedef struct {
+struct opcode_dataspace_header {
   uint32_t refcount;
   uint32_t initialized;
+  uint32_t retired;
   OPCODE_RETIRED retire;
   OPCODE_SETP_ENTRY *setp;
   void *allocation;
-} OPCODE_DATASPACE_HEADER;
+};
 
 
 #define OPCODE_DATASPACE_ALIGNMENT 16u
@@ -1525,6 +1499,40 @@ typedef struct {
 static OPCODE_DATASPACE_HEADER *opcode_dataspace_header(OPDS *dataspace) {
   return (OPCODE_DATASPACE_HEADER *)
     ((char *) dataspace - OPCODE_DATASPACE_PREFIX);
+}
+
+void opcode_dataspace_reclaim(CSOUND *csound) {
+  OPCODE_RETIRED *list, *next, *other = NULL;
+  if(csound == NULL || opcode_reclaiming) return;
+  opcode_reclaiming = 1;
+  list = opcode_retired_take();
+  while(list != NULL) {
+    next = list->next;
+    if(list->csound == csound) {
+      if(list->kind == OPCODE_RETIRE_SETP) {
+        OPCODE_SETP_ENTRY *entry = (OPCODE_SETP_ENTRY *) list->ptr;
+        opcode_setp_storage_free(csound, entry->storage);
+        csound->Free(csound, entry);
+      }
+      else if(list->kind == OPCODE_RETIRE_DATASPACE) {
+        OPDS *dataspace = (OPDS *) list->ptr;
+        if(list->runDeinit && dataspace->deinit != NULL)
+          dataspace->deinit(csound, dataspace);
+        if(list->freeAfter) {
+          ATOMIC_SET(opcode_dataspace_header(dataspace)->retired, 2);
+          opcode_dataspace_free_now(csound, dataspace);
+        }
+        else ATOMIC_SET(opcode_dataspace_header(dataspace)->retired, 0);
+      }
+    }
+    else {
+      list->next = other;
+      other = list;
+    }
+    list = next;
+  }
+  opcode_retired_repush(other);
+  opcode_reclaiming = 0;
 }
 
 static char *opcode_dataspace_base(OPDS *dataspace) {
@@ -1795,6 +1803,7 @@ static OPDS *opcode_dataspace_new(CSOUND *csound, OENTRY *entry, OPDS *h) {
     header->allocation = allocation;
     header->setp = NULL;
     memset(&header->retire, 0, sizeof(header->retire));
+    header->retired = 0;
     *opcode_dataspace_refslot(dataspace) = 1;
     header->initialized = 0;
     dataspace->insdshead = h->insdshead;
@@ -1820,7 +1829,7 @@ static inline OPCODEOBJ *opcode_array_obj(ARRAYDAT *array, int32_t i) {
                         (size_t) i * array->arrayMemberSize);
 }
 
-void opcode_dataspace_free(CSOUND *csound, OPDS *dataspace) {
+static void opcode_dataspace_free_now(CSOUND *csound, OPDS *dataspace) {
   if(dataspace == NULL) return;
   opcode_dataspace_free_setp(csound, dataspace);
   if(dataspace->optext != NULL) {
@@ -1859,10 +1868,22 @@ static void opcode_dataspace_setref_unlocked(OPDS *dataspace, uint32_t count) {
 }
 
 static void opcode_dataspace_retire(CSOUND *csound, OPDS *dataspace,
-                                    int32_t runDeinit, int32_t freeAfter) {
+                                     int32_t runDeinit, int32_t freeAfter) {
   OPCODE_DATASPACE_HEADER *header;
+  uint32_t old;
   if(dataspace == NULL) return;
   header = opcode_dataspace_header(dataspace);
+  for(;;) {
+    old = (uint32_t) ATOMIC_GET(header->retired);
+    if(old == 2) return;
+    if(old == 1) {
+      if(freeAfter) ATOMIC_SET(header->retire.freeAfter, 1);
+      if(runDeinit) ATOMIC_SET(header->retire.runDeinit, 1);
+      return;
+    }
+    old = 0;
+    if(OPCODE_ATOMIC_CAS_U32(header->retired, 1, old)) break;
+  }
   header->retire.next = NULL;
   header->retire.csound = csound;
   header->retire.kind = OPCODE_RETIRE_DATASPACE;
@@ -1871,6 +1892,25 @@ static void opcode_dataspace_retire(CSOUND *csound, OPDS *dataspace,
   header->retire.ptr = dataspace;
   opcode_retired_push(&header->retire);
 }
+
+void opcode_dataspace_free(CSOUND *csound, OPDS *dataspace) {
+  OPCODE_DATASPACE_HEADER *header;
+  uint32_t old;
+  if(dataspace == NULL) return;
+  header = opcode_dataspace_header(dataspace);
+  for(;;) {
+    old = (uint32_t) ATOMIC_GET(header->retired);
+    if(old == 2) return;
+    if(old == 1) {
+      ATOMIC_SET(header->retire.freeAfter, 1);
+      return;
+    }
+    old = 0;
+    if(OPCODE_ATOMIC_CAS_U32(header->retired, 2, old)) break;
+  }
+  opcode_dataspace_free_now(csound, dataspace);
+}
+
 
 int32_t opcode_dataspace_refcount(OPDS *dataspace) {
   if(dataspace == NULL) return 0;
