@@ -1844,8 +1844,8 @@ static int32_t opcode_dataspace_try_incref(OPDS *dataspace) {
   uint32_t *ref;
   if(dataspace == NULL) return 0;
   ref = opcode_dataspace_refslot(dataspace);
-  old = (uint32_t) ATOMIC_GET(*ref);
   for(;;) {
+    old = (uint32_t) ATOMIC_GET(*ref);
     if(old == 0 || old == 0xffffffffu) return 0;
     if(OPCODE_ATOMIC_CAS_U32(*ref, old + 1, old)) return (int32_t) (old + 1);
   }
@@ -1856,8 +1856,8 @@ static int32_t opcode_dataspace_decref_cas(OPDS *dataspace) {
   uint32_t *ref;
   if(dataspace == NULL) return 0;
   ref = opcode_dataspace_refslot(dataspace);
-  old = (uint32_t) ATOMIC_GET(*ref);
   for(;;) {
+    old = (uint32_t) ATOMIC_GET(*ref);
     if(old == 0) return 0;
     if(OPCODE_ATOMIC_CAS_U32(*ref, old - 1, old)) return (int32_t) (old - 1);
   }
